@@ -1,0 +1,76 @@
+"""Overview of project constellation"""
+
+1 - Introduction
+2 - Program flow
+3 - User input
+4 - Output
+
+
+
+
+1) Introduction
+
+Working with a terminal to view log / counter output can be time consuming, and identifying rate per second of a given counter can pose problems.  
+
+This program aims to automate the reading of counters, using curses to draw a basic rate per second graph, allowing user input to move / reposition 
+
+the area of interest.
+
+Planned features : 
+
+- basic constellation graph (just plot * at rate per second at each plotted time interval)
+- move to time, browse forward and back
+- plot / compare other flows / counters simultaneously
+- save and resume
+
+(long term planned features)
+
+- plot LB stats per vserver name
+
+2) Program Flow
+
+Program launched with no arguments, launches to curses selection window to input path to log file
+Program launched with argument (log file), will precompute the file and open selection window 
+
+Program should do a first run pass of the log file and write out a temporary file (to minimise CPU / Memory impact on subsequent runs)
+
+Suggest to use https://pymotw.com/2/shelve/index.html#module-shelve to hold on to persistent data
+
+A shelve based db with keys for each individual counter will be created
+Counter name will be the key, and values will be an additional dict with val, time lists
+
+typical formatting of list based counter values : 
+
+['31', 'nic_tot_tx_packets', 'interface(1/2)', 'Tue Feb 2 14:32:56 2016']
+['8295', 'nic_tot_tx_bytes', 'interface(1/2)', 'Tue Feb 2 14:32:56 2016']
+['40', 'nic_tot_tx_packets', 'interface(1/1)', 'Tue Feb 2 14:32:56 2016']
+['10481', 'nic_tot_tx_bytes', 'interface(1/1)', 'Tue Feb 2 14:32:56 2016']
+['0', 'nic_tot_tx_mbits', 'interface(1/1)', 'Tue Feb 2 14:32:56 2016']
+['19', 'nic_tot_tx_packets', 'interface(0/1)', 'Tue Feb 2 14:32:56 2016']
+['5728', 'nic_tot_tx_bytes', 'interface(0/1)', 'Tue Feb 2 14:32:56 2016']
+['0', 'nic_tot_tx_mbits', 'interface(0/1)', 'Tue Feb 2 14:32:56 2016']
+['185', 'nic_tot_tx_packets', 'interface(LO/1)', 'Tue Feb 2 14:32:56 2016']
+['16428', 'nic_tot_tx_bytes', 'interface(LO/1)', 'Tue Feb 2 14:32:56 2016']
+['0', 'nic_tot_tx_mbits', 'interface(LO/1)', 'Tue Feb 2 14:32:56 2016']
+
+shelve = file_name_run_against
+key = counter_name
+value = dict
+dict = dev_no
+value = dict
+dict = data
+
+newnslog.1:{nic_tot_tx_packets:{int_num{'rate':[555,666,777],'time':['14:32:56 2016','14:33:03 2016','14:33:10 2016']},
+                                int_num{'rate':[],'time[]},
+                                int_num{'rate':[],'time[]},
+                                },
+           {nic_tot_tx_mbits:{int_num:{'rate':[],'time':[]}},
+                             {int_num:{'rate':[],'time':[]}}, 
+                             }
+                             
+
+
+
+
+nic_tot_tx_packets interface\(1/2\)
+ip_tot_txMbits
