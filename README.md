@@ -1,7 +1,3 @@
-# util
-
-Various utilities
-
 #norblog
 
 Log reading script for .Orblog files produced when creating a Diagnostic file from a Citrix CloudBridge appliance.  These files are usually not stored in ascii and need to be filtered
