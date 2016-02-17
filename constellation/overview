@@ -69,6 +69,55 @@ newnslog.1:{nic_tot_tx_packets:{int_num{'rate':[555,666,777],'time':['14:32:56 2
                              }
                              
 
+classes :
+
+Data_handler:
+    class which handles opening / reading and writing data to a shelve hash table
+
+    databuild:
+        method to read file and populate hash table
+
+    dataget:
+        method to retrieve parts of the stored hash table information
+
+    datapurge:
+        method to remove the existing hash table
+
+Constellation:
+    class to display data (received from Data_handler) via curses
+
+    getmaxvals:
+        method to iterate through a range of numbers and decide the stepping
+        of the y axis, x axis
+
+    timehandler:
+        method to automate conversion of time from / to epoch
+
+    userwin:
+        method to take care of drawing / maintaing the main selection / informational
+        window
+
+    constwin:
+        method to take care of actually plotting the y/x axis, writing characters 
+        on the correct x/y axis to visualise rate
+
+Side project:
+    write an algorithm that :
+        given 2 points, a and b, each plotted at some y/x value, find the straightest
+        route from a to b
+
+        e.g.
+
+        a is at 50,50 (middle of a 100,100 window), be is at 75,50 (lower centre)
+        find the most direct route (in intermediary points) from a to b
+
+        in this example:
+        50,50 -> 51,50 -> 52,50 -> ... -> 74,50 75,50
+
+
+
+
+
 
 
 
