@@ -57,7 +57,7 @@ class Data_build(object):
            shelve instance"""
         self.shelf.sync()
 
-    def close_hash(self):
+    def close_hash(self
         """Convenience function to close the shelve instance"""
         self.shelf.close()
 
@@ -65,6 +65,28 @@ class Data_build(object):
         """Convenience function to remove the shelve .db file"""
         os.remove(self.hashname)
 
+class Nstools(object):
+    def __init__(self,nslog,nsver,countlist):
+        #initialise command string for subprocess
+        command_string = 'nsconmsg' + nsver + ' -K ' + nslog + \
+            ' -d current' + ' -s disptime=1'
+
+
+    def counter_string_to_list_with_devno(string):
+        """Takes counter input string, modifies the timestamp and 
+        returns a list representation of the string"""
+        if len(string.split()) == 11:
+            new_list = string.split()[0:6]
+            add_list = string.split()[7:11]
+            new_list.append(" ".join(add_list))
+            return new_list
+        elif len(string.split()) == 12:
+            new_list = string.split()[0:7]
+            add_list = string.split()[7:12]
+            new_list.append(" ".join(add_list))
+            return new_list #new_list[4:]
+        else:
+            pass
 
 
 
