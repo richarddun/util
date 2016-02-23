@@ -4,6 +4,8 @@
 import shelve
 import os
 import itertools
+import subprocess
+from time import datetime
 
 class Data_build(object):
     """Class to interact with python shelve to build/read/write/destroy shelves 
@@ -43,7 +45,10 @@ class Data_build(object):
             yield i
     
     def read_data(self,countname,devname,timest=0,begin=False):
-        """Read and return data from the shelve instance"""
+        """Read and return data from the shelve instance.
+           Accepts countername, device name and timestamp.
+           Iterates through a hash, stopping at maxrets (
+           total number of records to return)"""
         if timest = 0:
             index = 0
             for i, j in itertools.izip(self.shelf[countname][devname]['rate'],
@@ -57,7 +62,7 @@ class Data_build(object):
            shelve instance"""
         self.shelf.sync()
 
-    def close_hash(self
+    def close_hash(self):
         """Convenience function to close the shelve instance"""
         self.shelf.close()
 
@@ -66,12 +71,18 @@ class Data_build(object):
         os.remove(self.hashname)
 
 class Nstools(object):
+    """NS Tools class instance.  Used to parse and manipulate
+       NetScaler newnslog counter output when run with the 
+       'nsconmsg' log file reader"""
     def __init__(self,nslog,nsver,countlist):
         #initialise command string for subprocess
-        command_string = 'nsconmsg' + nsver + ' -K ' + nslog + \
-            ' -d current' + ' -s disptime=1'
-
-
+        self.nslog = nslog
+        self.nsver = nsver
+        self.countlist = countlist
+        self.command_string = 'nsconmsg' + self.nsver + ' -K ' + self.nslog + \
+            ' -d current' + ' -s disptime=1' #TODO - modify to build larger
+            #pattern set
+        
     def counter_string_to_list_with_devno(string):
         """Takes counter input string, modifies the timestamp and 
         returns a list representation of the string"""
@@ -85,9 +96,44 @@ class Nstools(object):
             add_list = string.split()[7:12]
             new_list.append(" ".join(add_list))
             return new_list #new_list[4:]
+        #TODO - convert time string to epoch 
+        #before passing back
         else:
             pass
 
+    def nratechecker():
+        """Netscaler specific log reading method.  References
+        counter_string_to_list_with_devno()
+        """
+        
+        checklist = ['master_cpu_use','mgmt_cpu_use']
+        #checklist put here for no reason, other than a reminder
+        #for now
+        
+        #0 = Index, 1 = rtime (relative time), 2 = totalcount-val, 
+        #3 = delta, 4 = rate/sec, 5 = symbol-name 6 = &device-no, 7 = time
+
+        # regexes for input handling
+        detect_log_headers = re.compile('(reltime)|(Index)|
+                (Performance)|(performance)|(Build)')
+        strip_path_newnslog = re.compile('newnslo\S+')
+        # locate log file
+        input_file = os.path.join(os.getcwd(), self.nslog)
+        if not os.path.exists(input_file):
+            raise IOError('Input file not found')
+            return 3
+
+        #parse variables into list - because it is a bytestream passed 
+        #from subprocess need to use splitlines()
+
+        for line in subprocess.check_output([self.command_string], 
+                shell=True).splitlines():
+            if not detect_log_headers.search(line):
+                if line.strip():#make sure the line is _not_ empty
+                    outstring = self.counter_string_to_list_with_devno(line)
+                    yield outstring
 
 
-
+#TODO - work further on flow of data from logger to hash
+#     - work on logic with class instantiation and 
+#       utilisation of classes in main program flow
