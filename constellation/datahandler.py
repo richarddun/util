@@ -5,7 +5,7 @@ import shelve
 import os
 import itertools
 import subprocess
-from time import datetime
+import time
 
 class Data_build(object):
     """Class to interact with python shelve to build/read/write/destroy shelves 
@@ -74,30 +74,38 @@ class Nstools(object):
     """NS Tools class instance.  Used to parse and manipulate
        NetScaler newnslog counter output when run with the 
        'nsconmsg' log file reader"""
-    def __init__(self,nslog,nsver,countlist):
+    def __init__(self,nslog,nsver):#countlist
         #initialise command string for subprocess
         self.nslog = nslog
+        self.counts = ['master_cpu_use','mgmt_cpu_use']
         self.nsver = nsver
-        self.countlist = countlist
+        templist = []
+        for count in self.counts:
+            templist.append('-f')
+            templist.append(count)
+        forcestring = templist ' '.join(templist)
+        #self.countlist = countlist
         self.command_string = 'nsconmsg' + self.nsver + ' -K ' + self.nslog + \
-            ' -d current' + ' -s disptime=1' #TODO - modify to build larger
+            ' -d current ' + forcestring + ' -s disptime=1' #TODO - modify to build larger
             #pattern set
-        
+    
     def counter_string_to_list_with_devno(string):
         """Takes counter input string, modifies the timestamp and 
         returns a list representation of the string"""
         if len(string.split()) == 11:
             new_list = string.split()[0:6]
-            add_list = string.split()[7:11]
-            new_list.append(" ".join(add_list))
+            timelist = string.split()[7:11]
+            timestring = ' '.join(timelist[1:])
+	    pattern = '%b %d %H:%M:%S %Y'
+            new_list.append(int(time.mktime(time.strptime(timestring,patter))))
             return new_list
         elif len(string.split()) == 12:
             new_list = string.split()[0:7]
-            add_list = string.split()[7:12]
-            new_list.append(" ".join(add_list))
-            return new_list #new_list[4:]
-        #TODO - convert time string to epoch 
-        #before passing back
+            timelist = string.split()[7:12]
+            timestring = ' '.join(timelist[1:])
+	    pattern = '%b %d %H:%M:%S %Y'
+            new_list.append(int(time.mktime(time.strptime(timestring,patter))))
+            return new_list
         else:
             pass
 
@@ -105,10 +113,6 @@ class Nstools(object):
         """Netscaler specific log reading method.  References
         counter_string_to_list_with_devno()
         """
-        
-        checklist = ['master_cpu_use','mgmt_cpu_use']
-        #checklist put here for no reason, other than a reminder
-        #for now
         
         #0 = Index, 1 = rtime (relative time), 2 = totalcount-val, 
         #3 = delta, 4 = rate/sec, 5 = symbol-name 6 = &device-no, 7 = time

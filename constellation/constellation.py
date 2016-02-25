@@ -24,14 +24,13 @@ logfile = args.infile
 
 dataspool = Data_build()
 dataspool.open_hash(logfile)
+ns_source = Nstools()
+log_generator = ns_source.nratechecker()
+for data in log_generator:
+    dataspool.add_data(data)
 
-
-
-
-
-
-
-
+dataspool.sync_hash()
+dataspool.close_hash()
 
 
 
