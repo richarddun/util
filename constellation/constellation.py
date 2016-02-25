@@ -21,10 +21,11 @@ group1.add_argument("-infile", help="Logfile to parse",
 args = parser.parse_args()
 
 logfile = args.infile
+ver = args.ver
 
 dataspool = Data_build()
 dataspool.open_hash(logfile)
-ns_source = Nstools()
+ns_source = Nstools(logfile,ver)
 log_generator = ns_source.nratechecker()
 for data in log_generator:
     dataspool.add_data(data)
