@@ -7,7 +7,7 @@ import itertools
 import subprocess
 import time
 import re
-#import pdb
+import pdb
 
 class Data_build(object):
     """Class to interact with python shelve to build/read/write/destroy shelves 
@@ -24,25 +24,31 @@ class Data_build(object):
     
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
-           Values expected : 0 - Rate (int),1 - Name (str), 2 - Dev_name (str), 
+           Values expected : 0 - Value (int),1 - Name (str), 2 - Dev_name (str), 
            3 - Timestamp (int)"""
-        #pdb.set_trace()
         if len(buf) == 4:
             self.value = buf[0]
             self.counter_name = buf[1]
             self.devname = buf[2]
             self.timestamp = buf[3]
+            #if self.counter_name == 'mem_cur_allocsize':
+            #    pdb.set_trace()
             if not self.counter_name in self.shelf:
                 self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
+                self.shelf[self.counter_name][self.devname]['value'].append(self.value)
+                self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
             if not self.devname in self.shelf[self.counter_name]:
                 self.shelf[self.counter_name].update({self.devname:{'value':[],'time':[]}})
+                self.shelf[self.counter_name][self.devname]['value'].append(self.value)
+                self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
             else:
                 self.shelf[self.counter_name][self.devname]['value'].append(self.value)
                 self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
-    
+        #TODO - Fix the fact that extra key doesn't appear in shelve, only cpu_use appears to be written
+  
     def get_devs(self,countname):
         """Read shelve keys, return 'Devname' ; Devname is a string identifying an entity
            to track, and update in the shelve instance"""
@@ -82,13 +88,13 @@ class Nstools(object):
     def __init__(self,nslog,nsver):#countlist
         self.nslog = nslog
         self.counts = ['cc_cpu_use',
-                       'mem_cur_allocsize',
-                       'nic_tot_tx_bytes',
-                       'nic_tot_rx_bytes',
-                       'nic_tot_rx_mbits',
-                       'nic_tot_tx_mbits',
-                       'vlan_tot_tx_bytes',
-                       'vlan_tot_rx_bytes']
+                       'mem_cur_allocsize']#,
+                       #'nic_tot_tx_bytes',
+                       #'nic_tot_rx_bytes',
+                       #'nic_tot_rx_mbits',
+                       #'nic_tot_tx_mbits',
+                       #'vlan_tot_tx_bytes',
+                       #'vlan_tot_rx_bytes']
         self.totalclist = ['cc_cpu_use','mem_cur_allocsize']
                 #unique list for these, need special handling
         self.nsver = nsver
