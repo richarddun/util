@@ -28,14 +28,16 @@ class Data_build(object):
            3 - Timestamp (int)"""
         #pdb.set_trace()
         if len(buf) == 4:
-            self.rate = buf[0]
+            self.value = buf[0]
             self.counter_name = buf[1]
             self.devname = buf[2]
             self.timestamp = buf[3]
             if not self.counter_name in self.shelf:
-                self.shelf[self.counter_name] = {self.devname:{'rate':[],'time':[]}}
+                self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
+            if not self.devname in self.shelf[self.counter_name]:
+                self.shelf[self.counter_name].update({self.devname:{'value':[],'time':[]}})
             else:
-                self.shelf[self.counter_name][self.devname]['rate'].append(self.rate)
+                self.shelf[self.counter_name][self.devname]['value'].append(self.value)
                 self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
@@ -78,16 +80,24 @@ class Nstools(object):
        NetScaler newnslog counter output when run with the 
        'nsconmsg' log file reader"""
     def __init__(self,nslog,nsver):#countlist
-        #initialise command string for subprocess
         self.nslog = nslog
-        self.counts = ['cc_cpu_use']
+        self.counts = ['cc_cpu_use',
+                       'mem_cur_allocsize',
+                       'nic_tot_tx_bytes',
+                       'nic_tot_rx_bytes',
+                       'nic_tot_rx_mbits',
+                       'nic_tot_tx_mbits',
+                       'vlan_tot_tx_bytes',
+                       'vlan_tot_rx_bytes']
+        self.totalclist = ['cc_cpu_use','mem_cur_allocsize']
+                #unique list for these, need special handling
         self.nsver = nsver
         templist = []
         for count in self.counts:
             templist.append('-f')
             templist.append(count)
         forcestring = ' '.join(templist)
-        #self.countlist = countlist
+        #initialise command string for subprocess
         self.command_string = 'nsconmsg' + self.nsver + ' -K ' + self.nslog + \
             ' -d current ' + forcestring + ' -s disptime=1' #TODO - modify to build larger
             #pattern set
@@ -95,20 +105,36 @@ class Nstools(object):
     def counter_string_to_list_with_devno(self, string):
         """Takes counter input string, modifies the timestamp and 
         returns a list representation of the string"""
+        #0 = Index, 1 = rtime (relative time), 2 = totalcount-val, 
+        #3 = delta, 4 = rate/sec, 5 = symbol-name 6 = &device-no, 7 = time
+        totalc,ratepersec,symname,devno = 2,4,5,6 
+        new_list = []
         if len(string.split()) == 11:
             new_list = string.split()[0:6]
-            timelist = string.split()[6:11]
-            timestring = ' '.join(timelist[1:])
+            timelist = string.split()[6:11]#timestamp is in 4 chunks
+            timestring = ' '.join(timelist[1:])#don't care about name of day
 	    pattern = '%b %d %H:%M:%S %Y'
             new_list.append(int(time.mktime(time.strptime(timestring,pattern))))
             return new_list[4:]
         elif len(string.split()) == 12:
-            new_list = string.split()[0:7]
+            #some special handling for differing counters
+            #because some counters are in rate per second
+            #and others are in 'totalcount'
+            #seperating them if they are in totalclist
+            templist = string.split()
+            if templist[5] in self.totalclist:#symbol name in clist
+                new_list.append(templist[totalc])
+                new_list.append(templist[symname])
+                new_list.append(templist[devno])
+            else:
+                new_list.append(templist[ratepersec])
+                new_list.append(templist[symname])
+                new_list.append(templist[devno])
             timelist = string.split()[7:12]
             timestring = ' '.join(timelist[1:])
 	    pattern = '%b %d %H:%M:%S %Y'
             new_list.append(int(time.mktime(time.strptime(timestring,pattern))))
-            return new_list[4:]
+            return new_list
         else:
             pass
 
@@ -117,8 +143,6 @@ class Nstools(object):
         counter_string_to_list_with_devno()
         """
         
-        #0 = Index, 1 = rtime (relative time), 2 = totalcount-val, 
-        #3 = delta, 4 = rate/sec, 5 = symbol-name 6 = &device-no, 7 = time
 
         # regexes for input handling
         detect_log_headers = re.compile('(reltime)|(Index)|(Performance)|(performance)|(Build)')
