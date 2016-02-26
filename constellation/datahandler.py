@@ -31,8 +31,8 @@ class Data_build(object):
             self.counter_name = buf[1]
             self.devname = buf[2]
             self.timestamp = buf[3]
-            #if self.counter_name == 'mem_cur_allocsize':
-            #    pdb.set_trace()
+#            if self.counter_name == 'mem_cur_allocsize':
+#                pdb.set_trace()
             if not self.counter_name in self.shelf:
                 self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
                 self.shelf[self.counter_name][self.devname]['value'].append(self.value)

@@ -27,8 +27,12 @@ dataspool = Data_build()
 dataspool.open_hash(logfile)
 ns_source = Nstools(logfile,ver)
 log_generator = ns_source.nratechecker()
+synccount = 1
 for data in log_generator:
     dataspool.add_data(data)
+    if synccount % 50 == 0:
+        dataspool.sync_hash()
+    synccount += 1
 
 dataspool.sync_hash()
 dataspool.close_hash()
