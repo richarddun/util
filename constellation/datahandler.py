@@ -68,6 +68,18 @@ class Data_build(object):
                     yield (i,j)
                     index += 1
     
+    def get_time_range(self):
+        """Returns max and min time vals from the shelve records"""
+#        for i in s.keys():
+#        for j in s[i].keys():
+#            if len(s[i][j]['time']) > maxval:
+#                maxval = len(s[i][j]['time'])
+         pass
+#>>> maxval
+#289
+ 
+        pass
+
     def sync_hash(self):
         """Writeback will be enabled, convenience function to sync the 
            shelve instance"""
@@ -88,15 +100,16 @@ class Nstools(object):
     def __init__(self,nslog,nsver):#countlist
         self.nslog = nslog
         self.counts = ['cc_cpu_use',
-                       'mem_cur_allocsize']#,
-                       #'nic_tot_tx_bytes',
-                       #'nic_tot_rx_bytes',
-                       #'nic_tot_rx_mbits',
-                       #'nic_tot_tx_mbits',
-                       #'vlan_tot_tx_bytes',
-                       #'vlan_tot_rx_bytes']
+                       'mem_cur_allocsize',
+                       'nic_tot_tx_bytes',
+                       'nic_tot_rx_bytes',
+                       'nic_tot_rx_mbits',
+                       'nic_tot_tx_mbits',
+                       'vlan_tot_tx_bytes',
+                       'vlan_tot_rx_bytes']
         self.totalclist = ['cc_cpu_use','mem_cur_allocsize']
                 #unique list for these, need special handling
+                #because we look for 'totalcount' and not rate p/sec
         self.nsver = nsver
         templist = []
         for count in self.counts:
@@ -105,8 +118,7 @@ class Nstools(object):
         forcestring = ' '.join(templist)
         #initialise command string for subprocess
         self.command_string = 'nsconmsg' + self.nsver + ' -K ' + self.nslog + \
-            ' -d current ' + forcestring + ' -s disptime=1' #TODO - modify to build larger
-            #pattern set
+            ' -d current ' + forcestring + ' -s disptime=1' 
     
     def counter_string_to_list_with_devno(self, string):
         """Takes counter input string, modifies the timestamp and 
@@ -128,7 +140,7 @@ class Nstools(object):
             #and others are in 'totalcount'
             #seperating them if they are in totalclist
             templist = string.split()
-            if templist[5] in self.totalclist:#symbol name in clist
+            if templist[symname] in self.totalclist:#symbol name in clist
                 new_list.append(templist[totalc])
                 new_list.append(templist[symname])
                 new_list.append(templist[devno])
@@ -148,8 +160,6 @@ class Nstools(object):
         """Netscaler specific log reading method.  References
         counter_string_to_list_with_devno()
         """
-        
-
         # regexes for input handling
         detect_log_headers = re.compile('(reltime)|(Index)|(Performance)|(performance)|(Build)')
         strip_path_newnslog = re.compile('newnslo\S+')
