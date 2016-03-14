@@ -6,50 +6,65 @@ import os
 import sys
 import subprocess
 import re
+import curses
 from datahandler import *
 from display import *
 
+def check_args():
+    global ver,logfile
+    parser = argparse.ArgumentParser(description ='Rate count visualiser')
+    group1 = parser.add_argument_group('required arguments')
+#    group1.add_argument("-ns", metavar='Use if logfile is newnslog')
+    group1.add_argument("-ver", choices=['101','105','110'],
+            help="Newnslog version",required=True,metavar='VER')
+    group1.add_argument("-infile", help="Logfile to parse",
+            required=True,metavar='PATH')
+    args = parser.parse_args()
+    logfile = args.infile
+    ver = args.ver
+    curses.wrapper(main)
 
-#handle user input
-parser = argparse.ArgumentParser(description ='Rate count visualiser')
-group1 = parser.add_argument_group('required arguments')
-group1.add_argument("-ns", metavar='Use if logfile is newnslog')
-group1.add_argument("-ver", choices=['101','105','110'],
-        help="Newnslog version")
-group1.add_argument("-infile", help="Logfile to parse",
-        required=True,metavar='PATH')
-args = parser.parse_args()
+def main(win):
+    """Main control flow"""
+    global stdscr
+    stdscr = win
+    curses.noecho()
+    curses.cbreak()
+    stdscr.keypad(1)
+    curses.curs_set(0)
+    y,x=0,1
 
-logfile = args.infile
-ver = args.ver
+    dataspool = Data_build()
+    dataspool.open_hash(logfile)
+    ns_source = Nstools(logfile,ver)
+    log_generator = ns_source.nratechecker()
+    synccount = 1
+    for data in log_generator:
+        dataspool.add_data(data)
+        if synccount % 50 == 0:
+            dataspool.sync_hash()
+        synccount += 1
+    dataspool.sync_hash()
 
-dataspool = Data_build()
-dataspool.open_hash(logfile)
-ns_source = Nstools(logfile,ver)
-log_generator = ns_source.nratechecker()
-synccount = 1
-for data in log_generator:
-    dataspool.add_data(data)
-    if synccount % 50 == 0:
-        dataspool.sync_hash()
-    synccount += 1
-
-dataspool.sync_hash()
-dataspool.close_hash()
-
-
-
+    #start of window creation
+    maxcoords = stdscr.getmaxyx()
+    max_Y,max_X = maxcoords[0],maxcoords[1]
+    cwin = CselectWin(max_Y,max_X)
+    cwin.Draw_main_cselect(dataspool.topclist())
 
 
 
 
 
 
+    #end of program clean up
+    curses.nocbreak()
+    stdscr.keypad(0)
+    curses.echo()
+    curses.endwin()
 
+#dataspool.close_hash()
 
-
-
-
-#if __name__ == '__main__':
-#    ratechecker()
+if __name__=='__main__':
+    check_args()
 

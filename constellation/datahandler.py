@@ -16,6 +16,7 @@ class Data_build(object):
         self.operating = False
         self.barebones = ' '
         self.maxrets = maxrets
+        self.shortcounts = []
 
     def open_hash(self,name):
         """Open a shelve instance"""
@@ -31,8 +32,6 @@ class Data_build(object):
             self.counter_name = buf[1]
             self.devname = buf[2]
             self.timestamp = buf[3]
-#            if self.counter_name == 'mem_cur_allocsize':
-#                pdb.set_trace()
             if not self.counter_name in self.shelf:
                 self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
                 self.shelf[self.counter_name][self.devname]['value'].append(self.value)
@@ -47,7 +46,6 @@ class Data_build(object):
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
-        #TODO - Fix the fact that extra key doesn't appear in shelve, only cpu_use appears to be written
   
     def get_devs(self,countname):
         """Read shelve keys, return 'Devname' ; Devname is a string identifying an entity
@@ -69,16 +67,38 @@ class Data_build(object):
                     index += 1
     
     def get_time_range(self):
-        """Returns max and min time vals from the shelve records"""
-#        for i in s.keys():
-#        for j in s[i].keys():
-#            if len(s[i][j]['time']) > maxval:
-#                maxval = len(s[i][j]['time'])
-         pass
-#>>> maxval
-#289
- 
-        pass
+        """Returns max and min time vals from the shelve records
+           Will check the start and end time for the largest
+           record set (i.e. there may be other shorter records)"""
+        maxval = 0
+        for i in self.shelf.keys():
+            for j in self.shelf[i].keys():
+                if len(s[i][j]['time']) > maxval:
+                    self.numvals = len(s[i][j]['time'])
+                    self.maxtime = max(s[i][j]['time'])
+                    self.mintime = min(s[i][j]['time'])
+        return self.mintime,self.maxtime
+
+    def shortlist(self):
+        """identify counters which have a short lifespan and
+           add to a list for reference 
+           Counts len of each time list and if len is less
+           than the shortval, appends to list for future
+           reference"""
+        shortval = 20
+        for i in self.shelf.keys():
+            for j in self.shelf[i].keys():
+                if len(s[i][j]['time']) < shortval:
+                    self.shortcounts.append(j)
+
+    def topclist(self):
+        """Reads and returns list of main counters from 
+           shelve"""
+        clist = []
+        for cl in self.shelf.keys():
+            clist.append(cl)
+            return clist
+
 
     def sync_hash(self):
         """Writeback will be enabled, convenience function to sync the 
