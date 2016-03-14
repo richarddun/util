@@ -94,10 +94,11 @@ class Data_build(object):
     def topclist(self):
         """Reads and returns list of main counters from 
            shelve"""
-        clist = []
+        self.clist = []
+        #pdb.set_trace()
         for cl in self.shelf.keys():
-            clist.append(cl)
-            return clist
+            self.clist.append(cl)
+        return self.clist
 
 
     def sync_hash(self):
