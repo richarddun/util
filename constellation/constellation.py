@@ -45,12 +45,38 @@ def main(win):
             dataspool.sync_hash()
         synccount += 1
     dataspool.sync_hash()
+    dataspool.close_hash()
 
     #start of window creation
     maxcoords = stdscr.getmaxyx()
-    max_Y,max_X = maxcoords[0],maxcoords[1]
-    cwin = CselectWin(max_Y,max_X)
-    cwin.Draw_main_cselect(dataspool.topclist())
+    max_Y,max_X = maxcoords[y],maxcoords[x]
+    db_str = logfile + '.db'
+    dataspool.open_hash(db_str)
+    cwin = BaseWin(max_Y,max_X)
+    cwin.Main_Cselect(dataspool.topclist())
+    running = True
+    while running:
+        keypress = stdscr.getch()
+        if keypress == ord('Q'):
+            running = False
+            return
+        elif keypress == curses.KEY_DOWN:
+            if cwin.context == 1:
+                cwin.selectdown()
+            elif cwin.context == 2:
+                cwin.selectdown()
+            elif cwin.context == 3:
+                pass
+        elif keypress == curses.KEY_UP:
+            if cwin.context == 1:
+                cwin.selectup()
+            elif cwin.context == 2:
+                cwin.selectup()
+            elif cwin.context ==3 :
+                pass
+        elif (keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13):
+            pass
+
 
 
 
