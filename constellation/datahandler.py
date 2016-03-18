@@ -50,8 +50,7 @@ class Data_build(object):
     def get_devs(self,countname):
         """Read shelve keys, return 'Devname' ; Devname is a string identifying an entity
            to track, and update in the shelve instance"""
-        for i in self.shelf[countname].keys():
-            yield i
+        return self.shelf[countname].keys()
     
     def read_data(self,countname,devname,timest=0,begin=False):
         """Read and return data from the shelve instance.
@@ -94,12 +93,16 @@ class Data_build(object):
     def topclist(self):
         """Reads and returns list of main counters from 
            shelve"""
-        self.clist = []
-        #pdb.set_trace()
-        for cl in self.shelf.keys():
-            self.clist.append(cl)
-        return self.clist
+        return self.shelf.keys()
 
+    def shallow_ret(self):
+        """Returns top and middle level data from shelve
+           i.e. the main counter entry, and the dev 
+           entries.  For use in display function"""
+        shallow_dict = {}
+        for item in self.shelf.keys():
+            shallow_dict[item] = self.shelf[item].keys()#need to go deeper
+        return shallow_dict
 
     def sync_hash(self):
         """Writeback will be enabled, convenience function to sync the 
