@@ -52,8 +52,9 @@ def main(win):
     max_Y,max_X = maxcoords[y],maxcoords[x]
     db_str = logfile + '.db'
     dataspool.open_hash(db_str)
+    stdscr.refresh()#inexplicably, this is required
     cwin = BaseWin(max_Y,max_X)
-    cwin.Main_Cselect(dataspool.topclist())
+    cwin.Main_Cselect(dataspool.topclist(),dataspool.shallow_ret())
     running = True
     while running:
         keypress = stdscr.getch()
