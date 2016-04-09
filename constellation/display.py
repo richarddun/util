@@ -37,7 +37,9 @@ class BaseWin(object):
             if len(countl) > self.maxstrlen:
                 self.maxstrlen = len(countl)
                 #get longest stringlen from list
-        
+        for counter in self.countmap:
+            for dev in counter:
+                self.maxdevstrlen = len(dev)
         for index,countl in enumerate(self.upperclist,1):
             self.mlocationref[index]=countl #remember for later
             if index == 1:
@@ -70,7 +72,7 @@ class BaseWin(object):
             for counter in self.countmap[
                            self.mlocationref[
                            self.mlocptr]]:#need to go deeper
-            #for posterity, line 66 and below : 
+                               #for posterity, line 70 and below : 
             #self.countmap is a dict passed to the class method, plucked
             #from datahandler module (shallow_ret() method).  It is a 
             #dict containing counter:devname only (not filled with 
@@ -83,16 +85,18 @@ class BaseWin(object):
             #is redrawn each time an up or down key is pressed.
                 curY = (self.starty+self.prevloc+index)
                 if curY + 3 > self.len_y:
-                    rightshift += 30
+                    rightshift += 50
                     index = 1
                 self.win.addstr(self.starty+self.prevloc+index,self.startx+self.maxstrlen+rightshift+3,counter)
-                index += 1
+                index += 1 #shameless abandonment of enumerate
             self.win.addstr(self.starty+self.prevloc,self.startx,
                 self.mlocationref[self.prevloc])
             self.prevloc = self.mlocptr
-        
         self.win.refresh()
-        
+       #TODO : implement clean up of previous 'submenu'
+       #       add the same method to select up
+       #       write all locations of output strings for later
+       #           reference, to track what was selected
     def selectup(self):
         if (self.mlocptr - 1) < 1:
         #if pressing up will send us off the top
