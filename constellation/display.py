@@ -26,9 +26,11 @@ class BaseWin(object):
         self.mlocptr = 1 #track index (current)
         self.prevloc = 1 #track index (previous)
         self.maxstrlen = 0
-        self.upperclist = topclist
-        self.countmap = countermap
-        self.mlocationref = {}
+        self.upperclist = topclist #main list of counters
+        self.countmap = countermap #dict containing counter:devs
+        self.mlocationref = {} 
+        self.subwinmap = {} #dict containing panels for devs
+        self.subpans = []
         self.win.addstr(self.starty,self.startx,
                 'Please select a base counter:')
         for countl in self.upperclist:
@@ -44,6 +46,7 @@ class BaseWin(object):
             else:
                 self.win.addstr(self.starty+index,self.startx,countl)
         self.win.refresh()
+        
 
     def selectdown(self):
         rightshift = 0
@@ -63,24 +66,33 @@ class BaseWin(object):
             self.mlocptr += 1
             self.win.addstr(self.starty+self.mlocptr,self.startx,
                 self.mlocationref[self.mlocptr],curses.A_REVERSE)
-            for index,counter in enumerate(
-                   self.countmap[
-                       self.mlocationref[
-                           self.mlocptr]],1):#need to go deeper
-               self.win.addstr(self.starty+self.prevloc+index,
-                       self.startx+self.maxstrlen+rightshift+3,counter)
-               if self.win.getyx()[0] - 5 > self.len_y - 5:
-                   rightshift += 5
+            index = 1
+            for counter in self.countmap[
+                           self.mlocationref[
+                           self.mlocptr]]:#need to go deeper
+            #for posterity, line 66 and below : 
+            #self.countmap is a dict passed to the class method, plucked
+            #from datahandler module (shallow_ret() method).  It is a 
+            #dict containing counter:devname only (not filled with 
+            #actual counter data like rate/time).  self.mlocationref is 
+            #another dict, containing counter name and index (where 
+            #drawn on the y axis), and self.mlocptr is incremented or
+            #decremented based on whether up or down is pressed (via 
+            #selectdown() or selectup() methods. Basically these lines
+            #of code write a 'submenu' of 'devs' for each 'counter' that
+            #is redrawn each time an up or down key is pressed.
+                curY = (self.starty+self.prevloc+index)
+                if curY + 3 > self.len_y:
+                    rightshift += 30
+                    index = 1
+                self.win.addstr(self.starty+self.prevloc+index,self.startx+self.maxstrlen+rightshift+3,counter)
+                index += 1
             self.win.addstr(self.starty+self.prevloc,self.startx,
                 self.mlocationref[self.prevloc])
             self.prevloc = self.mlocptr
         
-        
-        
         self.win.refresh()
         
-
-
     def selectup(self):
         if (self.mlocptr - 1) < 1:
         #if pressing up will send us off the top
@@ -102,10 +114,7 @@ class BaseWin(object):
             self.prevloc = self.mlocptr
         self.win.refresh()
 
-    def Sub_Cselect(self):
+    def Sub_Cselect(self,countname):
         pass
-
-
-
 
 
