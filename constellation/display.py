@@ -16,7 +16,6 @@ class BaseWin(object):
         self.infobox = curses.newwin(self.infob_h,self.len_x,self.infob_offset,
             self.startx)
         self.infobox.border('|','|','-','-','+','+','+','+')
-
         self.countpan = curses.panel.new_panel(self.win)
         self.infobpan = curses.panel.new_panel(self.infobox)
         self.infobpan.hide()#hiding it for now
@@ -26,6 +25,7 @@ class BaseWin(object):
         self.mlocptr = 1 #track index (current)
         self.prevloc = 1 #track index (previous)
         self.maxstrlen = 0
+        self.pan_selectref = {}
         self.upperclist = topclist #main list of counters
         self.countmap = countermap #dict containing counter:devs
         self.mlocationref = {} 
@@ -56,6 +56,21 @@ class BaseWin(object):
                     self.writeoffset = 1
                 self.subwinls[index-2].border('|','|','-','-','+','+','+','+')
                 self.subwinls[index-2].addstr(self.writeoffset,self.rightshift,dev)
+                #remember where we write all strings
+            	if counter in self.pan_selectref:
+		    self.pan_selectref[counter].update(
+		     {dev:
+		     {'locationy':self.writeoffset,
+		      'locationx':self.rightshift,
+		      'selected':False}})
+		else:
+		    self.pan_selectref.update(
+		     {counter:
+		     {dev:
+		     {'locationy':self.writeoffset,
+	   	      'locationx':self.rightshift,
+		      'selected':False}}})
+		
                 self.writeoffset += 1 #shameless abandonment of enumerate
             self.writeoffset = 1
 
