@@ -29,8 +29,10 @@ class BaseWin(object):
         self.upperclist = topclist #main list of counters
         self.countmap = countermap #dict containing counter:devs
         self.mlocationref = {} 
-        self.subwinmap = {} #dict containing panels for devs
-        self.subpans = []
+        self.subwinls = [] #sub window list
+        self.subpans = {} #sub panels dict
+        self.rightshift = 1
+        self.writeoffset =1
         self.win.addstr(self.starty,self.startx,
                 'Please select a base counter:')
         for countl in self.upperclist:
@@ -40,6 +42,23 @@ class BaseWin(object):
         for counter in self.countmap:
             for dev in counter:
                 self.maxdevstrlen = len(dev)
+        for index,counter in enumerate(self.upperclist,2):
+            self.subwinls.append(curses.newwin(self.len_y-index,80,index,35)) 
+            #create new window, y - index (increments)
+            #x - longest string, then append to list
+            self.subpans[counter] = curses.panel.new_panel(self.subwinls[index-2])
+            #index minus 2 because I'm drawing positions on screen as well as 
+            #indexing into a list
+            for dev in self.countmap[counter]:
+                curY = self.writeoffset
+                if curY + 5 > self.len_y-index:
+                    self.rightshift += 50
+                    self.writeoffset = 1
+                self.subwinls[index-2].border('|','|','-','-','+','+','+','+')
+                self.subwinls[index-2].addstr(self.writeoffset,self.rightshift,dev)
+                self.writeoffset += 1 #shameless abandonment of enumerate
+            self.writeoffset = 1
+
         for index,countl in enumerate(self.upperclist,1):
             self.mlocationref[index]=countl #remember for later
             if index == 1:
@@ -62,41 +81,21 @@ class BaseWin(object):
             self.win.addstr(self.starty+self.mlocptr,self.startx,
                 self.mlocationref[self.mlocptr],curses.A_REVERSE)
             #invert the text to highlight current selection
-           
+            self.subpans[self.mlocationref[self.mlocptr]].top()
             self.prevloc = self.mlocptr
         else:
             self.mlocptr += 1
             self.win.addstr(self.starty+self.mlocptr,self.startx,
                 self.mlocationref[self.mlocptr],curses.A_REVERSE)
-            index = 1
-            for counter in self.countmap[
-                           self.mlocationref[
-                           self.mlocptr]]:#need to go deeper
-                               #for posterity, line 70 and below : 
-            #self.countmap is a dict passed to the class method, plucked
-            #from datahandler module (shallow_ret() method).  It is a 
-            #dict containing counter:devname only (not filled with 
-            #actual counter data like rate/time).  self.mlocationref is 
-            #another dict, containing counter name and index (where 
-            #drawn on the y axis), and self.mlocptr is incremented or
-            #decremented based on whether up or down is pressed (via 
-            #selectdown() or selectup() methods. Basically these lines
-            #of code write a 'submenu' of 'devs' for each 'counter' that
-            #is redrawn each time an up or down key is pressed.
-                curY = (self.starty+self.prevloc+index)
-                if curY + 3 > self.len_y:
-                    rightshift += 50
-                    index = 1
-                self.win.addstr(self.starty+self.prevloc+index,self.startx+self.maxstrlen+rightshift+3,counter)
-                index += 1 #shameless abandonment of enumerate
             self.win.addstr(self.starty+self.prevloc,self.startx,
                 self.mlocationref[self.prevloc])
             self.prevloc = self.mlocptr
+            self.subpans[self.mlocationref[self.mlocptr]].top()
+
+        curses.panel.update_panels()
+        curses.doupdate()
         self.win.refresh()
-       #TODO : implement clean up of previous 'submenu'
-       #       add the same method to select up
-       #       write all locations of output strings for later
-       #           reference, to track what was selected
+    
     def selectup(self):
         if (self.mlocptr - 1) < 1:
         #if pressing up will send us off the top
@@ -108,7 +107,8 @@ class BaseWin(object):
             self.win.addstr(self.starty+self.mlocptr,self.startx,
                 self.mlocationref[self.mlocptr],curses.A_REVERSE)
             #invert the text to highlight current selection
-            self.prevloc = self.mlocptr
+            self.subpans[self.mlocationref[self.mlocptr]].top()
+            self.prevloc = self.mlocptr 
         else:
             self.mlocptr -= 1
             self.win.addstr(self.starty+self.mlocptr,self.startx,
@@ -116,6 +116,10 @@ class BaseWin(object):
             self.win.addstr(self.starty+self.prevloc,self.startx,
                 self.mlocationref[self.prevloc])
             self.prevloc = self.mlocptr
+            self.subpans[self.mlocationref[self.mlocptr]].top()
+
+        curses.panel.update_panels()
+        curses.doupdate()
         self.win.refresh()
 
     def Sub_Cselect(self,countname):
