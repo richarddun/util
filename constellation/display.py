@@ -46,6 +46,7 @@ class BaseWin(object):
         self.subpans = {} #sub panels dict
         self.rightshift = 1
         self.writeoffset =1
+        self.paneldevlist = []
         self.win.addstr(self.starty,self.startx,
                 'Please select a base counter:')
         for countl in self.upperclist:
@@ -64,6 +65,7 @@ class BaseWin(object):
             #indexing into a list
             for dev in self.countmap[counter]:
                 curY = self.writeoffset
+                self.paneldevlist.append(dev)
                 if curY + 5 > self.len_y-index:
                     self.rightshift += 50
                     self.writeoffset = 1
@@ -83,9 +85,10 @@ class BaseWin(object):
 		     {'locationy':self.writeoffset,
 	   	      'locationx':self.rightshift,
 		      'selected':False}}})
-		
                 self.writeoffset += 1 #shameless abandonment of enumerate
+            self.subpans[counter].set_userptr(self.paneldevlist)
             self.writeoffset = 1
+            self.paneldevlist = []
 
         for index,countl in enumerate(self.upperclist,1):
             self.mlocationref[index]=countl #remember for later
@@ -162,19 +165,44 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
 
-    def s_selectdown(self,countname):
-        pass
+    def s_selectdown(self):
+        if self.s_curloc + 2 > len(self.curdevlist):
+            self.s_curloc = 1
+        else: 
+            self.s_curloc += 1
+        y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+        x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+        self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                self.curdevlist[self.s_curloc],curses.A_REVERSE)
+        #TODO - undo video reverse on last recently visited string
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+       
 
     def s_selectup(self):
+        #TODO - implement the reverse of selectdown
         pass
 
     def p_jump(self):
-        pass
+        self.curdevlist = self.subpans[self.mlocationref[self.mlocptr]].userptr()
+        self.s_curloc = 0
+        self.s_prevloc = 0
+        #retrieve x and y coords from previously built dict
+        #using indexing pointers from m_select methods
+        y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[0]]['locationy']
+        x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[0]]['locationx']
+        self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                self.curdevlist[0],curses.A_REVERSE)
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
     def m_jump(self):
+        #TODO - Clear last reversed video string when jumping back to main cselect
         pass
 
-
+        #TODO - add counter selection method, initialise color pair or embolden
 
 
 
