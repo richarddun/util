@@ -63,20 +63,25 @@ def main(win):
             return
         elif keypress == curses.KEY_DOWN:
             if cwin.context == 1:
-                cwin.selectdown()
+                cwin.m_selectdown()
             elif cwin.context == 2:
-                cwin.selectdown()
+                cwin.s_selectdown()
             elif cwin.context == 3:
                 pass
         elif keypress == curses.KEY_UP:
             if cwin.context == 1:
-                cwin.selectup()
+                cwin.m_selectup()
             elif cwin.context == 2:
-                cwin.selectup()
+                cwin.s_selectup()
             elif cwin.context ==3 :
                 pass
-        elif (keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13):
-            pass
+        elif (keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13)
+            or (keypress == curses.KEY_RIGHT):
+            cwin.context = 2
+            cwin.p_jump()
+        elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
+            cwin.context = 1
+            cwin.m_jump()
 
 
 

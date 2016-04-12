@@ -6,6 +6,11 @@ from curses import panel
 import time
 
 class BaseWin(object):
+    """
+    Instantiates and handles movement and selection within the
+    curses canvas.  Takes height (h) and width (w) of terminal
+    as arguments
+    """
     def __init__(self,h,w):
         self.starty, self.startx = 1,1
         self.len_y,self.len_x = h,w
@@ -21,6 +26,14 @@ class BaseWin(object):
         self.infobpan.hide()#hiding it for now
 
     def Main_Cselect(self,topclist,countermap):
+        """
+        Handles movement within the 'base' counter selection screen.
+        Counter selection is read from a datahandler method passed to 
+        this method by the main constellation program.
+
+        Takes a list of strings - counter names (from datahandler), 
+        and a dict with counter:dev (e.g. - 'nic_rx':'eth0') as arguments
+        """
         self.context = 1 #initial selection context
         self.mlocptr = 1 #track index (current)
         self.prevloc = 1 #track index (previous)
@@ -84,7 +97,13 @@ class BaseWin(object):
         self.win.refresh()
         
 
-    def selectdown(self):
+    def m_selectdown(self):
+        """
+        Method to 'highlight' the next counter name when the down
+        arrow key is pressed.  Next counter is rewritten with reverse
+        video, previous counter is re-written without.
+        Corresponding Panel containing devs is brought to top().
+        """
         rightshift = 0
         if self.mlocptr + 1 > len(self.mlocationref.keys()):
         #if pressing down will send us off the bottom
@@ -111,7 +130,13 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
     
-    def selectup(self):
+    def m_selectup(self):
+        """
+        Method to 'highlight' the next counter name when the up
+        arrow key is pressed.  Next counter is rewritten with reverse
+        video, previous counter is re-written without.
+        Corresponding Panel containing devs is brought to top().
+        """
         if (self.mlocptr - 1) < 1:
         #if pressing up will send us off the top
         #go back to the bottom
@@ -137,7 +162,19 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
 
-    def Sub_Cselect(self,countname):
+    def s_selectdown(self,countname):
         pass
+
+    def s_selectup(self):
+        pass
+
+    def p_jump(self):
+        pass
+
+    def m_jump(self):
+        pass
+
+
+
 
 
