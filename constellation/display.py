@@ -238,7 +238,15 @@ class BaseWin(object):
 
     def m_jump(self):
         #TODO - Clear last reversed video string when jumping back to main cselect
-        pass
+        y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+        x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+        self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+        self.s_prevloc = self.s_curloc
+        self.context = 1
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+
 
         #TODO - add counter selection method, initialise color pair or embolden
 
