@@ -75,8 +75,7 @@ def main(win):
                 cwin.s_selectup()
             elif cwin.context ==3 :
                 pass
-        elif (keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13)
-            or (keypress == curses.KEY_RIGHT):
+        elif ((keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13) or (keypress == curses.KEY_RIGHT)) and cwin.context == 1:
             cwin.context = 2
             cwin.p_jump()
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
