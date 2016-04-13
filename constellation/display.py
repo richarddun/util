@@ -37,6 +37,8 @@ class BaseWin(object):
         self.context = 1 #initial selection context
         self.mlocptr = 1 #track index (current)
         self.prevloc = 1 #track index (previous)
+        self.s_curloc = 1 #track index (subwin current)
+        self.s_prevloc = 1 #track index (subwin previous)
         self.maxstrlen = 0
         self.pan_selectref = {}
         self.upperclist = topclist #main list of counters
@@ -167,22 +169,58 @@ class BaseWin(object):
 
     def s_selectdown(self):
         if self.s_curloc + 2 > len(self.curdevlist):
-            self.s_curloc = 1
+            self.s_curloc = 0
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                    self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            self.s_prevloc = self.s_curloc
+
         else: 
             self.s_curloc += 1
-        y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
-        x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
-        self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
-                self.curdevlist[self.s_curloc],curses.A_REVERSE)
-        #TODO - undo video reverse on last recently visited string
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                    self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            self.s_prevloc = self.s_curloc
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
        
 
     def s_selectup(self):
-        #TODO - implement the reverse of selectdown
-        pass
+        if self.s_curloc - 1 < 0:
+            self.s_curloc = len(self.curdevlist) - 1
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                    self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            self.s_prevloc = self.s_curloc
+
+        else: 
+            self.s_curloc -= 1
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                    self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            self.s_prevloc = self.s_curloc
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+
+
 
     def p_jump(self):
         self.curdevlist = self.subpans[self.mlocationref[self.mlocptr]].userptr()
