@@ -81,6 +81,9 @@ def main(win):
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
             cwin.context = 1
             cwin.m_jump()
+        elif (keypress == ord(' ')) and cwin.context == 2:
+            cwin.dev_toggle()
+
 
 
 
