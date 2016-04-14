@@ -13,6 +13,7 @@ class BaseWin(object):
     """
     def __init__(self,h,w):
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_RED)
         self.starty, self.startx = 1,1
         self.len_y,self.len_x = h,w
         self.win = curses.newwin(self.len_y,self.len_x,self.starty,self.startx)
@@ -101,8 +102,10 @@ class BaseWin(object):
                     curses.A_REVERSE)
             else:
                 self.win.addstr(self.starty+index,self.startx,countl)
+        self.subpans[self.mlocationref[self.mlocptr]].top()
+        curses.panel.update_panels()
+        curses.doupdate()
         self.win.refresh()
-        
 
     def m_selectdown(self):
         """
@@ -175,28 +178,49 @@ class BaseWin(object):
         arrow key is pressed.  Next device string is rewritten
         with reverse video, previous device is re-written without.
         """
-        if self.s_curloc + 2 > len(self.curdevlist):
+        if (self.s_curloc + 2 > len(self.curdevlist)) and (len(self.curdevlist) > 1):
             self.s_curloc = 0
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.color_pair(2))
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.color_pair(1))
+
             self.s_prevloc = self.s_curloc
 
-        else: 
+        elif len(self.curdevlist) > 1: 
             self.s_curloc += 1
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc])in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.color_pair(2))
+           
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.color_pair(1))
+        
+            self.s_prevloc = self.s_curloc
+        else:
             self.s_prevloc = self.s_curloc
         curses.panel.update_panels()
         curses.doupdate()
@@ -209,29 +233,50 @@ class BaseWin(object):
         arrow key is pressed.  Previous device string is rewritten
         with reverse video, next device string is re-written without.
         """
-        if self.s_curloc - 1 < 0:
+        if (self.s_curloc - 1 < 0) and (len(self.curdevlist) > 1):
             self.s_curloc = len(self.curdevlist) - 1
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc])  in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
-                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
-                        self.curdevlist[self.s_curloc],curses.A_REVERSE)
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.color_pair(2))
+
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.color_pair(1))
+
             self.s_prevloc = self.s_curloc
 
-        else: 
+        elif (len(self.curdevlist) > 1):
             self.s_curloc -= 1
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.color_pair(2))
+
             if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+            elif (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
+                y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+                x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+                self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.color_pair(1))
+
+            self.s_prevloc = self.s_curloc
+        else:
             self.s_prevloc = self.s_curloc
         curses.panel.update_panels()
         curses.doupdate()
@@ -242,15 +287,17 @@ class BaseWin(object):
         Method to 'jump' to the currently selected panel, and highlight
         the first available dev string with reverse video
         """
+        self.win.addstr(self.starty+self.mlocptr,self.startx,self.mlocationref[self.mlocptr])       
         self.curdevlist = self.subpans[self.mlocationref[self.mlocptr]].userptr()
         self.s_curloc = 0
         self.s_prevloc = 0
         #retrieve x and y coords from previously built dict
         #using indexing pointers from m_select methods
-        y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[0]]['locationy']
-        x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[0]]['locationx']
-        self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
-                self.curdevlist[0],curses.A_REVERSE)
+        if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[0]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[0]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
+                    self.curdevlist[0],curses.A_REVERSE)
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
@@ -260,10 +307,12 @@ class BaseWin(object):
         Method to 'jump' back to the main counter selection window,
         clearing the previously highlighted string
         """
+        self.win.addstr(self.starty+self.mlocptr,self.startx,self.mlocationref[self.mlocptr],curses.A_REVERSE)       
         #Clear last reversed video string when jumping back to main cselect
-        y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
-        x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
-        self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
+        if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+            y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
+            x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
+            self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
         self.s_prevloc = self.s_curloc
         self.context = 1
         curses.panel.update_panels()
@@ -274,11 +323,7 @@ class BaseWin(object):
         """
         Method to highlight and track each dev selected in each panel (counter)
         """
-        #TODO - Fix the bug that the toggled devs are referenced in a list
-        # so toggling one dev in one panel (counter submenu) causes problems 
-        # with highlighting select logic in other panels where the devname
-        # is the same
-        if self.curdevlist[self.s_curloc] not in self.toggledev:
+        if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
             self.toggledev.append((self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]))
             y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
             x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
@@ -288,7 +333,7 @@ class BaseWin(object):
             y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
             x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
             self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.A_REVERSE)
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
-
-        pass
-        #TODO - add counter selection method, initialise color pair or embolden
