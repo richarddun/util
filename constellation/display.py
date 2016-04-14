@@ -177,11 +177,11 @@ class BaseWin(object):
         """
         if self.s_curloc + 2 > len(self.curdevlist):
             self.s_curloc = 0
-            if not self.curdevlist[self.s_curloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
-            if not self.curdevlist[self.s_prevloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
@@ -189,11 +189,11 @@ class BaseWin(object):
 
         else: 
             self.s_curloc += 1
-            if not self.curdevlist[self.s_curloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc])in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
-            if not self.curdevlist[self.s_prevloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
@@ -211,12 +211,12 @@ class BaseWin(object):
         """
         if self.s_curloc - 1 < 0:
             self.s_curloc = len(self.curdevlist) - 1
-            if not self.curdevlist[self.s_curloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc])  in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,
                         self.curdevlist[self.s_curloc],curses.A_REVERSE)
-            if not self.curdevlist[self.s_prevloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
@@ -224,11 +224,11 @@ class BaseWin(object):
 
         else: 
             self.s_curloc -= 1
-            if not self.curdevlist[self.s_curloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_curloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_curloc],curses.A_REVERSE)
-            if not self.curdevlist[self.s_prevloc] in self.toggledev:
+            if not (self.mlocationref[self.mlocptr],self.curdevlist[self.s_prevloc]) in self.toggledev:
                 y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
                 x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
                 self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc])
@@ -279,12 +279,12 @@ class BaseWin(object):
         # with highlighting select logic in other panels where the devname
         # is the same
         if self.curdevlist[self.s_curloc] not in self.toggledev:
-            self.toggledev.append(self.curdevlist[self.s_curloc])
+            self.toggledev.append((self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]))
             y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
             x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
             self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.color_pair(1))
         else:
-            self.toggledev.remove(self.curdevlist[self.s_curloc])
+            self.toggledev.remove((self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]))
             y_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationy']
             x_coord = self.pan_selectref[self.mlocationref[self.mlocptr]][self.curdevlist[self.s_prevloc]]['locationx']
             self.subwinls[self.mlocptr-1].addstr(y_coord,x_coord,self.curdevlist[self.s_prevloc],curses.A_REVERSE)
