@@ -81,9 +81,21 @@ def main(win):
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
             cwin.context = 1
             cwin.m_jump()
+        elif keypress == ord('\t') and cwin.context == 3:
+            if cwin.selecting_time:
+                cwin.time_select('hide')
+            else :
+                cwin.time_select()
         elif (keypress == ord(' ')) and cwin.context == 2:
             cwin.dev_toggle()
-
+        elif keypress == ord('H') or keypress == ord('h') 
+            if cwin.showing_help:
+                cwin.show_help('hide')
+            else :
+                cwin.show_help()
+        elif (keypress == ord('G')) or (keypress == ord('g')) and cwin.context == 3:
+            #cwin.draw_graph()
+            pass
 
 
 
