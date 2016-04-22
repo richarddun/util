@@ -54,6 +54,17 @@ def main(win):
     dataspool.open_hash(db_str)
     stdscr.refresh()#inexplicably, this is required
     cwin = BaseWin(max_Y,max_X)
+    cwin.Intro_Option_draw()
+    while not cwin.introdone:
+        keypress = stdscr.getch()
+        if keypress == ord('Q'):
+            return
+            sys.exit()
+        elif (keypress == curses.KEY_RIGHT) or (keypress == curses.KEY_LEFT):
+            cwin.Intro_option_move()
+        elif keypress == ord(' '):
+            cwin.Intro_option_select()
+
     cwin.Main_Cselect(dataspool.topclist(),dataspool.shallow_ret())
     running = True
     while running:
@@ -88,7 +99,7 @@ def main(win):
                 cwin.time_select()
         elif (keypress == ord(' ')) and cwin.context == 2:
             cwin.dev_toggle()
-        elif keypress == ord('H') or keypress == ord('h') 
+        elif keypress == ord('H') or keypress == ord('h'): 
             if cwin.showing_help:
                 cwin.show_help('hide')
             else :
