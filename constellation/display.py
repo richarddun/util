@@ -15,6 +15,7 @@ class BaseWin(object):
         curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_RED)
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_RED)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_RED)
+        curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLUE)
         self.starty, self.startx = 1,1
         self.len_y,self.len_x = h,w
         self.win = curses.newwin(self.len_y,self.len_x,self.starty,self.startx)
@@ -35,21 +36,57 @@ class BaseWin(object):
         self.maxstrlen = 0
         self.pan_selectref = {}
         self.toggledev = []
+        self.introdone = False
 
     def Intro_Option_draw(self):
         self.gwin_ylen = self.len_y/3
         self.gwin_xlen = self.len_x/3
-        self.gwin = curses.newwin(self.len_y/4,self.len_x/4,self.gwin_ylen,self.gwin_xlen)
+        self.gwin = curses.newwin(self.len_y/4,(self.len_x/2-self.gwin_xlen/2),self.gwin_ylen,self.gwin_xlen)
         self.gwin.border('|','|','-','-','+','+','+','+')
         self.gpan = curses.panel.new_panel(self.gwin)
-        self.gprod = 'ns-constellation'
+        self.gprod = '**NSCONSTELLATION**'
         self.goption = ['-Isolated-','-Comparison-']
         self.gtext = ['View counters for each device in an isolated window','View selected counters simultaneously in one window']
         self.gwin.addstr(1, self.gwin_xlen/2 - (len(self.gprod)/2),self.gprod,curses.color_pair(3))
         self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0], curses.A_REVERSE)
         self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
-        #TODO - finish writing gtext underneath, implement movement/selection controls and recording the selection somewhere
+        self.gwin.addstr(7, 4,self.gtext[0])
+        self.isoloc = [3,self.gwin_xlen/4]
+        self.conloc = [3,((self.gwin_xlen/4)*3)]
+        self.incurselect = 0
+        self.gpan.top()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
+    def Intro_option_move(self):
+        if self.incurselect == 0:
+            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0])
+            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1],curses.A_REVERSE)
+            self.gwin.addstr(5,1,' '*len(self.gtext[0]))
+            self.gwin.addstr(7,4,self.gtext[1])
+            self.incurselect = 1
+        elif self.incurselect == 1:
+            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.A_REVERSE)
+            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
+            self.gwin.addstr(5,1,' '*len(self.gtext[1]))
+            self.gwin.addstr(7,4,self.gtext[0])
+            self.incurselect = 0
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+               
+    def Intro_option_select(self):
+        if self.incurselect == 0:
+            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.color_pair(4))
+        else:
+            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1], curses.color_pair(4))
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+        time.sleep(.5)
+        self.introdone = True
+        self.gpan.hide()
 
 
     def Main_Cselect(self,topclist,countermap):
