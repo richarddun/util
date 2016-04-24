@@ -94,12 +94,12 @@ class BaseWin(object):
         self.extext = 'Press Space to continue'
         self.warnwin_ylen = self.len_y/3
         self.warnwin_xlen = self.len_x/3
-        self.warnwin = curses.newwin(self.len_y/4,(self.len_x/2-self.gwin_xlen/2),3,len(self.g1text))
+        self.warnwin = curses.newwin(6,len(self.g1text)+3,self.len_y/2,(self.len_x/2) - (len(self.g1text)/2))
         self.warnwin.border('|','|','-','-','+','+','+','+')
         self.warnpan = curses.panel.new_panel(self.warnwin)
-        self.warnwin.addstr(1,1,self.g1text)
-        self.warnwin.addstr(2,1,self.g2text)
-        self.warnwin.addstr(3,(len(self.g1text)-len(self.extext)),self.extext)
+        self.warnwin.addstr(2,1,self.g1text)
+        self.warnwin.addstr(3,1,self.g2text)
+        self.warnwin.addstr(4,(len(self.g1text)-len(self.extext)),self.extext)
         self.warnpan.top()
         curses.panel.update_panels()
         curses.doupdate()
@@ -108,6 +108,37 @@ class BaseWin(object):
     def Selection_Warn_Dismiss(self):
         self.warning = False
         self.warnpan.hide()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+
+    def Help_Draw(self):
+        self.helptextlist = []
+        self.helpstring = ' '
+        self.toplen = 0
+        with open('help.txt','r') as helpfile:
+            for line in helpfile:
+                self.helptextlist.append(line)
+                if len(line) > self.toplen:
+                    self.toplen = len(line)
+        self.helpwin_ylen = len(self.helptextlist) + 2
+        self.helpwin_xlen = self.toplen + 4 
+        self.helpwin = curses.newwin(self.helpwin_ylen,self.helpwin_xlen,
+                self.len_y/2-(len(self.helptextlist)/2),
+                (self.len_x/2)-(self.toplen/2)+3)
+        self.helppan = curses.panel.new_panel(self.helpwin)
+        for index,line in enumerate(self.helptextlist,1):
+            self.helpstring = self.helptextlist[index-1]
+            self.helpwin.addstr(index,1,self.helptextlist[index-1])
+        self.helpwin.border('|','|','-','-','+','+','+','+')
+        self.helppan.top()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+
+    def Help_Dismiss(self):
+        self.showing_help = False
+        self.helppan.hide()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
