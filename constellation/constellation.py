@@ -106,10 +106,13 @@ def main(win):
                 else:
                     cwin.dev_toggle()
         elif keypress == ord('H') or keypress == ord('h'): 
-            if cwin.showing_help:
-                cwin.show_help('hide')
-            else :
-                cwin.show_help()
+            cwin.showing_help = True
+            cwin.Help_Draw()
+            while cwin.showing_help:
+                helppress = stdscr.getch()
+                if helppress == ord('H'):
+                    cwin.Help_Dismiss()
+
         elif (keypress == ord('G')) or (keypress == ord('g')) and cwin.context == 3:
             #cwin.draw_graph()
             pass
