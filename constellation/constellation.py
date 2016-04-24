@@ -54,7 +54,7 @@ def main(win):
     dataspool.open_hash(db_str)
     stdscr.refresh()#inexplicably, this is required
     cwin = BaseWin(max_Y,max_X)
-    cwin.Intro_Option_draw()
+    cwin.Intro_Option_draw()#intro screen
     while not cwin.introdone:
         keypress = stdscr.getch()
         if keypress == ord('Q'):
@@ -92,13 +92,19 @@ def main(win):
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
             cwin.context = 1
             cwin.m_jump()
-        elif keypress == ord('\t') and cwin.context == 3:
-            if cwin.selecting_time:
-                cwin.time_select('hide')
-            else :
-                cwin.time_select()
         elif (keypress == ord(' ')) and cwin.context == 2:
-            cwin.dev_toggle()
+            if len(cwin.toggledev) < 8: 
+                cwin.dev_toggle()
+            else:
+                if not cwin.on_toggled():
+                    cwin.warning = True
+                    cwin.Selection_Warn_Draw()
+                    while cwin.warning:
+                        warnpress = stdscr.getch()
+                        if warnpress == ord(' '):
+                            cwin.Selection_Warn_Dismiss()
+                else:
+                    cwin.dev_toggle()
         elif keypress == ord('H') or keypress == ord('h'): 
             if cwin.showing_help:
                 cwin.show_help('hide')
