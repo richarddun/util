@@ -88,6 +88,29 @@ class BaseWin(object):
         self.introdone = True
         self.gpan.hide()
 
+    def Selection_Warn_Draw(self):
+        self.g1text = 'Maximum selection is 8 unique counters.  To continue '
+        self.g2text = 'de-select a previous counter'
+        self.extext = 'Press Space to continue'
+        self.warnwin_ylen = self.len_y/3
+        self.warnwin_xlen = self.len_x/3
+        self.warnwin = curses.newwin(self.len_y/4,(self.len_x/2-self.gwin_xlen/2),3,len(self.g1text))
+        self.warnwin.border('|','|','-','-','+','+','+','+')
+        self.warnpan = curses.panel.new_panel(self.warnwin)
+        self.warnwin.addstr(1,1,self.g1text)
+        self.warnwin.addstr(2,1,self.g2text)
+        self.warnwin.addstr(3,(len(self.g1text)-len(self.extext)),self.extext)
+        self.warnpan.top()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+
+    def Selection_Warn_Dismiss(self):
+        self.warning = False
+        self.warnpan.hide()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
     def Main_Cselect(self,topclist,countermap):
         """
@@ -399,3 +422,8 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
 
+    def on_toggled(self):
+        if (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
+            return True
+        else:
+            return False
