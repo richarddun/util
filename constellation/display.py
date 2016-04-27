@@ -458,3 +458,38 @@ class BaseWin(object):
             return True
         else:
             return False
+
+    def generate_grephPanels(self):
+        """
+        Method to read the current toggledev list of tuples and build
+        a dict with the values.  This makes it easier to iterate 
+        intelligently through the values, and build a window for each
+        unique counter.
+        
+        Format of the dict is :
+
+        counterplotdict = {counter:[dev,dev,dev,dev],counter:[dev,dev,dev]}
+        """
+        self.graphwinsl = []
+        self.graphpansd = {}
+        self.countplotdict = {}
+        counter,dev = 0,1
+        for entry in self.toggledev:
+            if entry[counter] in countplotdict:
+                self.countplotdict[entry[counter]].append(entry[dev])
+            else:
+                self.countplotdict[entry[counter]] = [entry[dev]]
+        for index,entry in enumerate(self.countplotdict):
+            self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0)
+            self.graphpansd[entry] = curses.panel.new_panel(self.graphwinsl[index])
+
+    def spray_dots(self,y,x,num):
+        """
+        Method to draw a '*' at a given y location, at 'num' window.
+        """
+
+
+
+
+
+
