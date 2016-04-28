@@ -15,8 +15,13 @@ class Data_build(object):
     def __init__(self,maxrets=0):
         self.operating = False
         self.barebones = ' '
-        self.maxrets = maxrets
+        self.maxrets = 10000#conveniently high number for now 24/4/2016
         self.shortcounts = []
+        self.maxtval = 0 #maximum time value (end of counters) 100 on x index
+        self.mintval = 4102444800 #minimum time value (start) 0 on x index
+        self.maxvval = 0 #maximum value read = 100 on y index
+        self.minvval = 99999999999999 #minimum value read = 0 on y index
+                                      #it's an ugly hack at the moment
 
     def open_hash(self,name):
         """Open a shelve instance"""
@@ -26,12 +31,25 @@ class Data_build(object):
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
            Values expected : 0 - Value (int),1 - Name (str), 2 - Dev_name (str), 
-           3 - Timestamp (int)"""
+           3 - Timestamp (int)
+           Also note max/min val/time while reading data
+        """
         if len(buf) == 4:
             self.value = buf[0]
             self.counter_name = buf[1]
             self.devname = buf[2]
             self.timestamp = buf[3]
+            #take a note of max/min of time/values for later
+            #doing it here helps improve performance overall
+            if self.value > self.maxvval:
+                self.maxvval = self.value
+            elif self.value < self.minvval:
+                self.minvval = self.value
+            if self.timestamp > self.maxtval:
+                self.maxtval = self.timestamp
+            elif self.timestamp < self.mintval:
+                self.mintval = self.timestamp
+            #write info to shelf
             if not self.counter_name in self.shelf:
                 self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
                 self.shelf[self.counter_name][self.devname]['value'].append(self.value)
@@ -52,31 +70,40 @@ class Data_build(object):
            to track, and update in the shelve instance"""
         return self.shelf[countname].keys()
     
-    def read_data(self,countname,devname,timest=0,begin=False):
+    def read_full_data(self,countname,devname,maxy,maxx):
         """Read and return data from the shelve instance.
-           Accepts countername, device name and timestamp.
-           Iterates through a hash, stopping at maxrets (
-           total number of records to return)"""
-        if timest == 0:
-            index = 0
-            for i, j in itertools.izip(self.shelf[countname][devname]['rate'],
-                    self.shelf[countname][devname]['time']):
-                if index <= self.maxrets:
-                    yield (i,j)
-                    index += 1
-    
-    def get_time_range(self):
-        """Returns max and min time vals from the shelve records
-           Will check the start and end time for the largest
-           record set (i.e. there may be other shorter records)"""
-        maxval = 0
-        for i in self.shelf.keys():
-            for j in self.shelf[i].keys():
-                if len(s[i][j]['time']) > maxval:
-                    self.numvals = len(s[i][j]['time'])
-                    self.maxtime = max(s[i][j]['time'])
-                    self.mintime = min(s[i][j]['time'])
-        return self.mintime,self.maxtime
+           Optimises output to write easy to plot values,
+           from 0 - 100 (minimum/maximum)
+           Accepts countername, device name, relative y,
+           relative x (to calculate 0/100)
+        """
+        self.yplane = maxy
+        self.xplane = maxx
+        self.lentx = self.maxtval - self.mintval
+        self.skipval = 
+        for i in self.shelf:
+            for index,j in enumerate(self.shelf[i]):
+                #just scan through values to find max/min for each axis
+                if index = 0:
+                    self.minvval = self.shelf[i][j]['value'][index]
+                    self.maxvval = 
+                if self.shelf[i][j]['value'][index] < self.minvval:
+                    self.minvval = self.shelf[i][j]['value'][index]
+
+
+
+                #if len(s[i][j]['time']) > maxtval:
+                    #self.numtime = len(s[i][j]['time'])
+                    #self.maxtime = max(s[i][j]['time'])
+                #if len(s[i][j]['value']) > maxvval:
+
+        #for i, j in itertools.izip(self.shelf[countname][devname]['rate'],
+                #self.shelf[countname][devname]['time']):
+            #if index <= self.maxrets:
+                #yield (i,j)
+                #index += 1
+
+
 
     def shortlist(self):
         """identify counters which have a short lifespan and
