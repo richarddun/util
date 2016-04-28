@@ -113,10 +113,14 @@ def main(win):
                 if helppress == ord('H'):
                     cwin.Help_Dismiss()
 
-        elif (keypress == ord('G')) or (keypress == ord('g')) and cwin.context == 3:
+        elif (keypress == ord('G')) or (keypress == ord('g')):
+            cwin.context = 3
             #cwin.draw_graph()
-            pass
-
+            for index,counter in enumerate(cwin.countplotdict):
+                for dev in counter:
+                    #data_handler_display_data_read
+                    for timenotch,val in dataspool.read_data(counter,dev,max_Y,max_X):
+                        cwin.spray_dots(val,timenotch,index)
 
 
 
