@@ -1,9 +1,9 @@
 #!/usr/bin/env python2
 """Data gathering and read-write access to persistent storage"""
 
+from __future__ import division
 import shelve
 import os
-import itertools
 import subprocess
 import time
 import re
@@ -13,15 +13,10 @@ class Data_build(object):
     """Class to interact with python shelve to build/read/write/destroy shelves 
        based on need"""
     def __init__(self,maxrets=0):
-        self.operating = False
-        self.barebones = ' '
-        self.maxrets = 10000#conveniently high number for now 24/4/2016
-        self.shortcounts = []
         self.maxtval = 0 #maximum time value (end of counters) 100 on x index
         self.mintval = 4102444800 #minimum time value (start) 0 on x index
         self.maxvval = 0 #maximum value read = 100 on y index
         self.minvval = 99999999999999 #minimum value read = 0 on y index
-                                      #it's an ugly hack at the moment
 
     def open_hash(self,name):
         """Open a shelve instance"""
@@ -70,7 +65,7 @@ class Data_build(object):
            to track, and update in the shelve instance"""
         return self.shelf[countname].keys()
     
-    def read_full_data(self,countname,devname,maxy,maxx):
+    def read_full_data(self,countname,devn,maxy,maxx):
         """Read and return data from the shelve instance.
            Optimises output to write easy to plot values,
            from 0 - 100 (minimum/maximum)
@@ -80,30 +75,27 @@ class Data_build(object):
         self.yplane = maxy
         self.xplane = maxx
         self.lentx = self.maxtval - self.mintval
-        self.skipval = 
-        for i in self.shelf:
-            for index,j in enumerate(self.shelf[i]):
-                #just scan through values to find max/min for each axis
-                if index = 0:
-                    self.minvval = self.shelf[i][j]['value'][index]
-                    self.maxvval = 
-                if self.shelf[i][j]['value'][index] < self.minvval:
-                    self.minvval = self.shelf[i][j]['value'][index]
-
-
-
-                #if len(s[i][j]['time']) > maxtval:
-                    #self.numtime = len(s[i][j]['time'])
-                    #self.maxtime = max(s[i][j]['time'])
-                #if len(s[i][j]['value']) > maxvval:
-
-        #for i, j in itertools.izip(self.shelf[countname][devname]['rate'],
-                #self.shelf[countname][devname]['time']):
-            #if index <= self.maxrets:
-                #yield (i,j)
-                #index += 1
-
-
+        self.skipval = int(round(len(self.shelf[countname][devn]['time']) / float(self.xplane)))
+        self.curmaxval = max(self.shelf[countname][devn]['value'])
+        #self.curminval = min(self.shelf[countname][devname]['value'])
+        #self.valoffset = self.curmaxval - self.curminval
+        lameindex = 1
+        for reslice in xrange(0,self.lentx,self.skipval):
+            #slice + step to offset current average
+            #timeslice = self.shelf[countname][devname]['time'][reslice]
+            templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval]
+            pdb.set_trace()
+            #TODO - fix bugs
+            # 1) if self.xplane is long enough to hold the entire
+            # list of values, no need to do division
+            # 2) each list of values is not a list of ints
+            # the list contains strings.  Best to change that.
+            tempsum = sum(templist)
+            avgval = int(round(tempsum / float(self.skipval)))
+            #average value, divide the sum of the current slice into the number of slices
+            refvalloc = 100 - int(round((avgval/self.curmaxval)*100))
+            yield refvalloc,lameindex
+            lameindex += 1
 
     def shortlist(self):
         """identify counters which have a short lifespan and
