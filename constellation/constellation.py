@@ -115,15 +115,19 @@ def main(win):
 
         elif (keypress == ord('G')) or (keypress == ord('g')):
             cwin.context = 3
-            #cwin.draw_graph()
+            cwin.generate_graphPanels()
             for index,counter in enumerate(cwin.countplotdict):
-                for dev in counter:
+                for dev in cwin.countplotdict[counter]:
                     #data_handler_display_data_read
-                    for timenotch,val in dataspool.read_data(counter,dev,max_Y,max_X):
+                    curses.nocbreak()
+                    stdscr.keypad(0)
+                    curses.echo()
+                    curses.endwin()
+                    import pdb; pdb.set_trace()
+                    valuesource = dataspool.read_full_data(counter,dev,max_Y,max_X)
+                    for timenotch,val in valuesource:
                         cwin.spray_dots(val,timenotch,index)
-
-
-
+            cwin.refresh()
 
 
 
