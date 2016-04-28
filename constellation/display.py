@@ -459,7 +459,7 @@ class BaseWin(object):
         else:
             return False
 
-    def generate_grephPanels(self):
+    def generate_graphPanels(self):
         """
         Method to read the current toggledev list of tuples and build
         a dict with the values.  This makes it easier to iterate 
@@ -475,19 +475,28 @@ class BaseWin(object):
         self.countplotdict = {}
         counter,dev = 0,1
         for entry in self.toggledev:
-            if entry[counter] in countplotdict:
+            if entry[counter] in self.countplotdict:
                 self.countplotdict[entry[counter]].append(entry[dev])
             else:
                 self.countplotdict[entry[counter]] = [entry[dev]]
         for index,entry in enumerate(self.countplotdict):
-            self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0)
+            self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0))
             self.graphpansd[entry] = curses.panel.new_panel(self.graphwinsl[index])
+            self.graphwinsl[index].addstr(1,1,entry)
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
     def spray_dots(self,y,x,num):
         """
         Method to draw a '*' at a given y location, at 'num' window.
         """
+        self.graphwinsl[num].addch(y,x,'*')
 
+    def refresh(self):
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
 
 
