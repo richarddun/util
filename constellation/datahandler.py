@@ -15,14 +15,34 @@ class Data_build(object):
     def __init__(self,maxrets=0):
         self.maxtval = 0 #maximum time value (end of counters) 100 on x index
         self.mintval = 4102444800 #minimum time value (start) 0 on x index
-        self.maxvval = 0 #maximum value read = 100 on y index
-        self.minvval = 99999999999999 #minimum value read = 0 on y index
 
     def open_hash(self,name):
         """Open a shelve instance"""
         self.shelf = shelve.open(name,writeback=True)
         self.hashname = name
     
+    def get_longest_len(self,gllcounter,maximumX):
+        """
+        Method to find the longest 'time' list len. This is the 
+        base for the longest x axis when spraying dots to the
+        screen
+        """
+        self.maxtimelen = 0#max time, in value
+        self.maxlenlist = 0#max len of list, in value
+        self.maxtimlist = []#actual list
+        self.xplane = maximumX
+
+        for i in self.shelf[gllcounter]:
+            if len(self.shelf[gllcounter][i]['time']) > self.maxtimelen:
+                self.maxtimelen = len(self.shelf[gllcounter][i]['time'])
+                self.maxlenlist = len(self.shelf[gllcounter][i]['time'])
+                self.maxtimlist = self.shelf[gllcounter][i]['time']
+        if self.maxlenlist < self.xplane:
+            self.skipval = 0
+        elif self.maxlenlist > self.xplane:
+            self.skipval = round(float(self.maxlenlist)/self.xplane)
+
+
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
            Values expected : 0 - Value (int),1 - Name (str), 2 - Dev_name (str), 
@@ -36,10 +56,6 @@ class Data_build(object):
             self.timestamp = buf[3]
             #take a note of max/min of time/values for later
             #doing it here helps improve performance overall
-            if self.value > self.maxvval:
-                self.maxvval = self.value
-            elif self.value < self.minvval:
-                self.minvval = self.value
             if self.timestamp > self.maxtval:
                 self.maxtval = self.timestamp
             elif self.timestamp < self.mintval:
@@ -47,15 +63,15 @@ class Data_build(object):
             #write info to shelf
             if not self.counter_name in self.shelf:
                 self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
-                self.shelf[self.counter_name][self.devname]['value'].append(self.value)
-                self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
+                self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
+                self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
             if not self.devname in self.shelf[self.counter_name]:
                 self.shelf[self.counter_name].update({self.devname:{'value':[],'time':[]}})
-                self.shelf[self.counter_name][self.devname]['value'].append(self.value)
-                self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
+                self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
+                self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
             else:
-                self.shelf[self.counter_name][self.devname]['value'].append(self.value)
-                self.shelf[self.counter_name][self.devname]['time'].append(self.timestamp)
+                self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
+                self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
@@ -72,30 +88,36 @@ class Data_build(object):
            Accepts countername, device name, relative y,
            relative x (to calculate 0/100)
         """
+        
         self.yplane = maxy
         self.xplane = maxx
-        self.lentx = self.maxtval - self.mintval
-        self.skipval = int(round(len(self.shelf[countname][devn]['time']) / float(self.xplane)))
+        
+        #below is for 'isolated' view (first to implement)
         self.curmaxval = max(self.shelf[countname][devn]['value'])
         #self.curminval = min(self.shelf[countname][devname]['value'])
         #self.valoffset = self.curmaxval - self.curminval
-        lameindex = 1
-        for reslice in xrange(0,self.lentx,self.skipval):
-            #slice + step to offset current average
-            #timeslice = self.shelf[countname][devname]['time'][reslice]
-            templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval]
-            pdb.set_trace()
-            #TODO - fix bugs
-            # 1) if self.xplane is long enough to hold the entire
-            # list of values, no need to do division
-            # 2) each list of values is not a list of ints
-            # the list contains strings.  Best to change that.
-            tempsum = sum(templist)
-            avgval = int(round(tempsum / float(self.skipval)))
-            #average value, divide the sum of the current slice into the number of slices
-            refvalloc = 100 - int(round((avgval/self.curmaxval)*100))
-            yield refvalloc,lameindex
-            lameindex += 1
+        
+        self.firstime = self.maxtimlist.index(self.shelf[countname][devn]['time'][0])
+        self.lastime = self.maxtimlist.index(self.shelf[countname][devn]['time'][self.maxlenlist - 1])
+
+        for reslice in xrange(self.firstime,self.lastime,self.skipval):
+            if self.skipval > 0:
+                #timeslice = self.shelf[countname][devname]['time'][reslice]
+                templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval +1 ]
+                tempsum = sum(templist)
+                avgval = int(round(tempsum / float(self.skipval)))
+                refvalloc = int(round((avgval/self.curmaxval)*100))
+                transient_pc = float(refvalloc)/100
+                ypcent = self.yplane - int(round(self.yplane*transient_pc))
+                xref = int(round(float(len(self.maxtimlist))/self.xplane * reslice)) 
+            
+            else:
+                valuev = self.shelf[countname][devn]['value'][reslice:reslice+1]
+                refvalloc = int(round((valuev/self.curmaxval)*100))
+                transient_pc = float(refvalloc)/100
+                ypcent = self.yplan - int(round(self.yplane*transient_pc))
+                xref = reslice
+            yield ypcent,xref
 
     def shortlist(self):
         """identify counters which have a short lifespan and
