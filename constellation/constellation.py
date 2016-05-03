@@ -115,15 +115,16 @@ def main(win):
 
         elif (keypress == ord('G')) or (keypress == ord('g')):
             cwin.context = 3
+            #cwin.get_longest_len(cwin.countplotdict)
             cwin.generate_graphPanels()
             for index,counter in enumerate(cwin.countplotdict):
+                #curses.nocbreak()
+                #stdscr.keypad(0)
+                #curses.echo()
+                #curses.endwin()
+                #import pdb; pdb.set_trace()
+                dataspool.get_longest_len(counter,max_X)#just get longest len, each pass
                 for dev in cwin.countplotdict[counter]:
-                    #data_handler_display_data_read
-                    curses.nocbreak()
-                    stdscr.keypad(0)
-                    curses.echo()
-                    curses.endwin()
-                    import pdb; pdb.set_trace()
                     valuesource = dataspool.read_full_data(counter,dev,max_Y,max_X)
                     for timenotch,val in valuesource:
                         cwin.spray_dots(val,timenotch,index)
