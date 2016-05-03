@@ -40,7 +40,7 @@ class Data_build(object):
         if self.maxlenlist < self.xplane:
             self.skipval = 0
         elif self.maxlenlist > self.xplane:
-            self.skipval = round(float(self.maxlenlist)/self.xplane)
+            self.skipval = int(round(float(self.maxlenlist)/self.xplane))
 
 
     def add_data(self,buf):
@@ -98,26 +98,41 @@ class Data_build(object):
         #self.valoffset = self.curmaxval - self.curminval
         
         self.firstime = self.maxtimlist.index(self.shelf[countname][devn]['time'][0])
-        self.lastime = self.maxtimlist.index(self.shelf[countname][devn]['time'][self.maxlenlist - 1])
-
-        for reslice in xrange(self.firstime,self.lastime,self.skipval):
-            if self.skipval > 0:
-                #timeslice = self.shelf[countname][devname]['time'][reslice]
-                templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval +1 ]
-                tempsum = sum(templist)
-                avgval = int(round(tempsum / float(self.skipval)))
-                refvalloc = int(round((avgval/self.curmaxval)*100))
-                transient_pc = float(refvalloc)/100
-                ypcent = self.yplane - int(round(self.yplane*transient_pc))
-                xref = int(round(float(len(self.maxtimlist))/self.xplane * reslice)) 
-            
-            else:
-                valuev = self.shelf[countname][devn]['value'][reslice:reslice+1]
-                refvalloc = int(round((valuev/self.curmaxval)*100))
-                transient_pc = float(refvalloc)/100
-                ypcent = self.yplan - int(round(self.yplane*transient_pc))
-                xref = reslice
-            yield ypcent,xref
+        self.lastime = self.maxtimlist.index(self.shelf[countname][devn]['time'][-1])
+        if self.skipval > 0:
+            self.firstindex = int(round(self.firstime/self.skipval))
+        #pdb.set_trace()
+        if self.skipval > 0:
+            for reslice in xrange(self.firstindex,self.xplane-3,self.skipval):
+                    #timeslice = self.shelf[countname][devname]['time'][reslice]
+                    templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval]
+                    tempsum = sum(templist)
+                    #TODO - check if the x/y values are actually maxx/maxy where
+                    #       the windows are built in display.py
+                    #     - find out why some graphs don't draw continuous 0's
+                    if tempsum < 2:
+                        ypcent = 51
+                    else:
+                        avgval = int(round(tempsum / self.skipval))
+                        refvalloc = int(round((avgval/self.curmaxval)*100))
+                        transient_pc = float(refvalloc)/100
+                        ypcent = self.yplane - int(round(self.yplane*transient_pc))
+                    #if reslice > 180:
+                        #pdb.set_trace()
+                    if ypcent > 51:
+                        ypcent = 51
+                    yield reslice,ypcent
+           
+        else:
+            for reslice in xrange(self.firstindex,self.lastime):
+                valuev = self.shelf[countname][devn]['value'][reslice]
+                if valuev < 2:
+                    ypcent = 51
+                else :
+                    refvalloc = int(round((valuev/self.curmaxval)*100))
+                    transient_pc = float(refvalloc)/100
+                    ypcent = self.yplane - int(round(self.yplane*transient_pc))
+                yield reslice,ypcent
 
     def shortlist(self):
         """identify counters which have a short lifespan and
