@@ -124,10 +124,12 @@ def main(win):
                 #curses.endwin()
                 #import pdb; pdb.set_trace()
                 dataspool.get_longest_len(counter,max_X)#just get longest len, each pass
-                for dev in cwin.countplotdict[counter]:
-                    valuesource = dataspool.read_full_data(counter,dev,max_Y,max_X)
+                for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
+                    cwin.addname(dev, ylocindex, index)
+                    valuesource = dataspool.read_full_rate_data(counter,dev,max_Y,max_X)
                     for timenotch,val in valuesource:
-                        cwin.spray_dots(val,timenotch,index)
+                        cwin.spray_dots(val,timenotch,index,ylocindex)
+
             cwin.refresh()
 
 
