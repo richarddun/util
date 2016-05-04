@@ -16,6 +16,14 @@ class BaseWin(object):
         curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_RED)
         curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_RED)
         curses.init_pair(4, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        #now init color pairs for counter drawing, black bg
+        curses.init_pair(5, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(7, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(8, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(9, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_BLACK)
+        curses.init_pair(11, curses.COLOR_CYAN, curses.COLOR_BLACK)
         self.starty, self.startx = 1,1
         self.len_y,self.len_x = h,w
         self.win = curses.newwin(self.len_y,self.len_x,self.starty,self.startx)
@@ -487,12 +495,17 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
 
-    def spray_dots(self,y,x,num):
+    def addname(self,device,ystrindex,windex):
+        self.graphwinsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
+
+    def spray_dots(self,y,x,num,color):
         """
         Method to draw a '*' at a given y location, at 'num' window.
         """
-        self.graphwinsl[num].addch(y,x,'*')
+        self.graphchars = ['*','#','@','&','^','"','!','~']
 
+        self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
+        
     def refresh(self):
         curses.panel.update_panels()
         curses.doupdate()
