@@ -80,8 +80,16 @@ class Data_build(object):
         """Read shelve keys, return 'Devname' ; Devname is a string identifying an entity
            to track, and update in the shelve instance"""
         return self.shelf[countname].keys()
-    
-    def read_full_data(self,countname,devn,maxy,maxx):
+
+    def read_full_value_data(self,countname,devn,maxy,maxx):
+        """
+        Read and return data from the shelve instance.
+        This method reads only counters that represent
+        full data (i.e. not rate per second)
+        """
+        pass
+
+    def read_full_rate_data(self,countname,devn,maxy,maxx):
         """Read and return data from the shelve instance.
            Optimises output to write easy to plot values,
            from 0 - 100 (minimum/maximum)
@@ -107,20 +115,21 @@ class Data_build(object):
                     #timeslice = self.shelf[countname][devname]['time'][reslice]
                     templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval]
                     tempsum = sum(templist)
-                    #TODO - check if the x/y values are actually maxx/maxy where
-                    #       the windows are built in display.py
-                    #     - find out why some graphs don't draw continuous 0's
-                    if tempsum < 2:
-                        ypcent = 51
+                    if tempsum < 1:
+                        ypcent = 49
                     else:
                         avgval = int(round(tempsum / self.skipval))
+                        if avgval == 1:#ugly hack.  It needs to work soon.
+                            avgval = 0
                         refvalloc = int(round((avgval/self.curmaxval)*100))
                         transient_pc = float(refvalloc)/100
                         ypcent = self.yplane - int(round(self.yplane*transient_pc))
                     #if reslice > 180:
                         #pdb.set_trace()
-                    if ypcent > 51:
-                        ypcent = 51
+                    if ypcent > 49:
+                        ypcent = 49
+                    #if ypcent == 25:
+                        #pdb.set_trace()
                     yield reslice,ypcent
            
         else:
