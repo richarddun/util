@@ -66,8 +66,8 @@ def main(win):
             os.remove(os.path.join(os.getcwd(),db_str))
             return
             sys.exit()
-        elif (keypress == curses.KEY_RIGHT) or (keypress == curses.KEY_LEFT):
-            cwin.Intro_option_move()
+#        elif (keypress == curses.KEY_RIGHT) or (keypress == curses.KEY_LEFT):
+#            cwin.Intro_option_move()
         elif keypress == ord(' '):
             cwin.Intro_option_select()
     
@@ -127,7 +127,7 @@ def main(win):
                 if helppress == ord('H'):
                     cwin.Help_Dismiss()
 
-        elif (keypress == ord('G')) or (keypress == ord('g')):
+        elif ((keypress == ord('G')) or (keypress == ord('g'))) and cwin.context == 2:
             cwin.context = 3
 	    cwin.generate_graphPanels()
 #            curses.nocbreak()
@@ -143,7 +143,9 @@ def main(win):
                     valuesource = dataspool.read_full_rate_data(counter,dev,max_Y,max_X)
                     for timenotch,val in valuesource:
                         cwin.spray_dots(val,timenotch,index,ylocindex)
-
+        elif (keypress == ord('R')) and cwin.context == 3:
+            cwin.hide_graphPanels()
+            cwin.context = 2
             cwin.refresh()
 
 
