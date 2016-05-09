@@ -33,8 +33,12 @@ def main(win):
     stdscr.keypad(1)
     curses.curs_set(0)
     y,x=0,1
-
     dataspool = Data_build()
+#    curses.nocbreak()
+#    stdscr.keypad(0)
+#    curses.echo()
+#    curses.endwin()
+#    import pdb; pdb.set_trace()
     dataspool.open_hash(logfile)
     ns_source = Nstools(logfile,ver)
     log_generator = ns_source.nratechecker()
@@ -58,19 +62,23 @@ def main(win):
     while not cwin.introdone:
         keypress = stdscr.getch()
         if keypress == ord('Q'):
+            dataspool.close_hash()
+            os.remove(os.path.join(os.getcwd(),db_str))
             return
             sys.exit()
         elif (keypress == curses.KEY_RIGHT) or (keypress == curses.KEY_LEFT):
             cwin.Intro_option_move()
         elif keypress == ord(' '):
             cwin.Intro_option_select()
-
+    
     cwin.Main_Cselect(dataspool.topclist(),dataspool.shallow_ret())
     running = True
     while running:
         keypress = stdscr.getch()
         if keypress == ord('Q'):
             running = False
+            dataspool.close_hash()
+            os.remove(os.path.join(os.getcwd(),db_str))
             return
         elif keypress == curses.KEY_DOWN:
             if cwin.context == 1:
@@ -86,25 +94,31 @@ def main(win):
                 cwin.s_selectup()
             elif cwin.context ==3 :
                 pass
-        elif ((keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13) or (keypress == curses.KEY_RIGHT)) and cwin.context == 1:
-            cwin.context = 2
-            cwin.p_jump()
+        elif ((keypress == curses.KEY_ENTER) or (keypress == 10) or (keypress == 13) or (keypress == curses.KEY_RIGHT)):
+            if cwin.context == 1:
+                cwin.context = 2
+                cwin.p_jump()
+            elif cwin.context == 3:
+                cwin.graphshow(1)
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
-            cwin.context = 1
-            cwin.m_jump()
+            if cwin.context == 2:
+                cwin.context = 1
+                cwin.m_jump()
+            elif cwin.context == 3:
+                cwin.graphshow(-1)
         elif (keypress == ord(' ')) and cwin.context == 2:
-            if len(cwin.toggledev) < 8: 
-                cwin.dev_toggle()
-            else:
-                if not cwin.on_toggled():
-                    cwin.warning = True
-                    cwin.Selection_Warn_Draw()
-                    while cwin.warning:
-                        warnpress = stdscr.getch()
-                        if warnpress == ord(' '):
-                            cwin.Selection_Warn_Dismiss()
-                else:
-                    cwin.dev_toggle()
+            #if len(cwin.toggledev) < 8: 
+            cwin.dev_toggle()
+            #else:
+            #    if not cwin.on_toggled():
+            #        cwin.warning = True
+            #        cwin.Selection_Warn_Draw()
+            #        while cwin.warning:
+            #            warnpress = stdscr.getch()
+            #            if warnpress == ord(' '):
+            #                cwin.Selection_Warn_Dismiss()
+            #    else:
+            #        cwin.dev_toggle()
         elif keypress == ord('H') or keypress == ord('h'): 
             cwin.showing_help = True
             cwin.Help_Draw()
@@ -115,15 +129,15 @@ def main(win):
 
         elif (keypress == ord('G')) or (keypress == ord('g')):
             cwin.context = 3
-            #cwin.get_longest_len(cwin.countplotdict)
-            cwin.generate_graphPanels()
+	    cwin.generate_graphPanels()
+#            curses.nocbreak()
+#            stdscr.keypad(0)
+#            curses.echo()
+#            curses.endwin()
+#            import pdb; pdb.set_trace()
+#            for count,counter in enumerate(cwin.countplotdict):
+#                dataspool.get_longest_len(counter,max_X,count)#just get longest len, each pass
             for index,counter in enumerate(cwin.countplotdict):
-                #curses.nocbreak()
-                #stdscr.keypad(0)
-                #curses.echo()
-                #curses.endwin()
-                #import pdb; pdb.set_trace()
-                dataspool.get_longest_len(counter,max_X)#just get longest len, each pass
                 for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
                     cwin.addname(dev, ylocindex, index)
                     valuesource = dataspool.read_full_rate_data(counter,dev,max_Y,max_X)
