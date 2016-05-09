@@ -20,28 +20,6 @@ class Data_build(object):
         """Open a shelve instance"""
         self.shelf = shelve.open(name,writeback=True)
         self.hashname = name
-    
-    def get_longest_len(self,gllcounter,maximumX):
-        """
-        Method to find the longest 'time' list len. This is the 
-        base for the longest x axis when spraying dots to the
-        screen
-        """
-        self.maxtimelen = 0#max time, in value
-        self.maxlenlist = 0#max len of list, in value
-        self.maxtimlist = []#actual list
-        self.xplane = maximumX
-
-        for i in self.shelf[gllcounter]:
-            if len(self.shelf[gllcounter][i]['time']) > self.maxtimelen:
-                self.maxtimelen = len(self.shelf[gllcounter][i]['time'])
-                self.maxlenlist = len(self.shelf[gllcounter][i]['time'])
-                self.maxtimlist = self.shelf[gllcounter][i]['time']
-        if self.maxlenlist < self.xplane:
-            self.skipval = 0
-        elif self.maxlenlist > self.xplane:
-            self.skipval = int(round(float(self.maxlenlist)/self.xplane))
-
 
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
@@ -49,7 +27,13 @@ class Data_build(object):
            3 - Timestamp (int)
            Also note max/min val/time while reading data
         """
-        if len(buf) == 4:
+        if buf[1] == 'sys_cur_duration_sincestart':
+            if 'timestamps' in self.shelf.keys():
+                self.shelf['timestamps'].append(buf[2])
+            else:
+                self.shelf['timestamps'] = []
+                self.shelf['timestamps'].append(buf[2])
+        elif len(buf) == 4:
             self.value = buf[0]
             self.counter_name = buf[1]
             self.devname = buf[2]
@@ -72,6 +56,7 @@ class Data_build(object):
             else:
                 self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
                 self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
+        
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
@@ -99,16 +84,21 @@ class Data_build(object):
         
         self.yplane = maxy
         self.xplane = maxx
-        
-        #below is for 'isolated' view (first to implement)
+        self.maxtimlist = list(self.shelf['timestamps'])
+        if self.maxtimlist < self.xplane:
+             self.skipval = 0
+        else:
+             self.skipval = int(round(float(len(self.maxtimlist))/self.xplane))
+       #below is for 'isolated' view (first to implement)
         self.curmaxval = max(self.shelf[countname][devn]['value'])
         #self.curminval = min(self.shelf[countname][devname]['value'])
         #self.valoffset = self.curmaxval - self.curminval
-        
+        #pdb.set_trace()
         self.firstime = self.maxtimlist.index(self.shelf[countname][devn]['time'][0])
         self.lastime = self.maxtimlist.index(self.shelf[countname][devn]['time'][-1])
         if self.skipval > 0:
             self.firstindex = int(round(self.firstime/self.skipval))
+
         #pdb.set_trace()
         if self.skipval > 0:
             for reslice in xrange(self.firstindex,self.xplane-3,self.skipval):
@@ -133,7 +123,7 @@ class Data_build(object):
                     yield reslice,ypcent
            
         else:
-            for reslice in xrange(self.firstindex,self.lastime):
+            for reslice in xrange(self.firstime,self.lastime):
                 valuev = self.shelf[countname][devn]['value'][reslice]
                 if valuev < 2:
                     ypcent = 51
@@ -158,15 +148,17 @@ class Data_build(object):
     def topclist(self):
         """Reads and returns list of main counters from 
            shelve"""
-        return self.shelf.keys()
+        return [x for x in self.shelf if x != 'timestamps']
 
     def shallow_ret(self):
         """Returns top and middle level data from shelve
            i.e. the main counter entry, and the dev 
            entries.  For use in display function"""
         shallow_dict = {}
+#        pdb.set_trace()
         for item in self.shelf.keys():
-            shallow_dict[item] = self.shelf[item].keys()#need to go deeper
+            if item != 'timestamps':
+                shallow_dict[item] = self.shelf[item].keys()#need to go deeper
         return shallow_dict
 
     def sync_hash(self):
@@ -197,17 +189,19 @@ class Nstools(object):
                        'vlan_tot_tx_bytes',
                        'vlan_tot_rx_bytes']
         self.totalclist = ['cc_cpu_use','mem_cur_allocsize']
+        self.metronome = ' -f sys_cur_duration_sincestart '
                 #unique list for these, need special handling
                 #because we look for 'totalcount' and not rate p/sec
         self.nsver = nsver
         templist = []
+        #pdb.set_trace()
         for count in self.counts:
             templist.append('-f')
             templist.append(count)
         forcestring = ' '.join(templist)
         #initialise command string for subprocess
         self.command_string = 'nsconmsg' + self.nsver + ' -K ' + self.nslog + \
-            ' -d current ' + forcestring + ' -s disptime=1' 
+            ' -d current ' + forcestring + self.metronome + ' -s disptime=1' 
     
     def counter_string_to_list_with_devno(self, string):
         """Takes counter input string, modifies the timestamp and 
@@ -216,6 +210,7 @@ class Nstools(object):
         #3 = delta, 4 = rate/sec, 5 = symbol-name 6 = &device-no, 7 = time
         totalc,ratepersec,symname,devno = 2,4,5,6 
         new_list = []
+        #pdb.set_trace()
         if len(string.split()) == 11:
             new_list = string.split()[0:6]
             timelist = string.split()[6:11]#timestamp is in 4 chunks
@@ -267,7 +262,3 @@ class Nstools(object):
                     outstring = self.counter_string_to_list_with_devno(line)
                     yield outstring
 
-
-#TODO - work further on flow of data from logger to hash
-#     - work on logic with class instantiation and 
-#       utilisation of classes in main program flow
