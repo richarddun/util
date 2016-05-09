@@ -4,8 +4,13 @@ Up arrow / Down arrow - Navigate through the Counter / Devices
 Right arrow / Enter - Jump from Counter to Device select (into submenu)
 Left arrow / Backspace - Jump back from Device to Counter (into main menu)
 Space key - Select or De-select a Device (in submenu)
-Tab key - Jump to or from Time select menu
-F12 key - Compute and display device and rate
-F10 key - Back to counter select menu
-'H' - Show or hide this help message
+Shift + G - compute and (G)raph device and rate
+Shift + R - (R)eturn to counter select menu
+Shift + H - Show or hide this (H)elp message
+
+Graph Navigation / Use Help
+
+Left arrow / Right arrow - shuffle between available devices / graphs
+Shift + R  - (R)eturn to counter select menu
+Shift and H - Show or hide this help message
 
