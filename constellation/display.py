@@ -43,6 +43,7 @@ class BaseWin(object):
         self.s_prevloc = 1 #track index (subwin previous)
         self.maxstrlen = 0
         self.pan_selectref = {}
+        self.panmvloc = 0
         self.toggledev = []
         self.introdone = False
 
@@ -53,46 +54,51 @@ class BaseWin(object):
         self.gwin.border('|','|','-','-','+','+','+','+')
         self.gpan = curses.panel.new_panel(self.gwin)
         self.gprod = '**NSCONSTELLATION**'
-        self.goption = ['-Isolated-','-Comparison-']
-        self.gtext = ['View counters for each device in an isolated window','View selected counters simultaneously in one window']
+ #       self.goption = ['-Isolated-','-Comparison-']
+ #       self.gtext = ['View counters for each device in an isolated window','View selected counters simultaneously in one window']
         self.gwin.addstr(1, self.gwin_xlen/2 - (len(self.gprod)/2),self.gprod,curses.color_pair(3))
-        self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0], curses.A_REVERSE)
-        self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
-        self.gwin.addstr(7, 4,self.gtext[0])
-        self.isoloc = [3,self.gwin_xlen/4]
-        self.conloc = [3,((self.gwin_xlen/4)*3)]
-        self.incurselect = 0
+#        self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0], curses.A_REVERSE)
+#        self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
+#        self.gwin.addstr(7, 4,self.gtext[0])
+#        self.isoloc = [3,self.gwin_xlen/4]
+#        self.conloc = [3,((self.gwin_xlen/4)*3)]
+#        self.incurselect = 0
+#below the stripped down version (for now)
+        self.gwin.addstr(3, self.gwin_xlen/5, 'Rate count visualiser')
+        self.gwin.addstr(5, self.gwin_xlen/5, 'Shift and q to quit')
+        self.gwin.addstr(6, self.gwin_xlen/5, 'Shift and h for  contextual help')
+        self.gwin.addstr(8, self.gwin_xlen/5, 'Press Spacebar to continue')
         self.gpan.top()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
 
-    def Intro_option_move(self):
-        if self.incurselect == 0:
-            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0])
-            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1],curses.A_REVERSE)
-            self.gwin.addstr(5,1,' '*len(self.gtext[0]))
-            self.gwin.addstr(7,4,self.gtext[1])
-            self.incurselect = 1
-        elif self.incurselect == 1:
-            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.A_REVERSE)
-            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
-            self.gwin.addstr(5,1,' '*len(self.gtext[1]))
-            self.gwin.addstr(7,4,self.gtext[0])
-            self.incurselect = 0
-        curses.panel.update_panels()
-        curses.doupdate()
-        self.win.refresh()
+#    def Intro_option_move(self):
+#        if self.incurselect == 0:
+#            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0])
+#            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1],curses.A_REVERSE)
+#            self.gwin.addstr(5,1,' '*len(self.gtext[0]))
+#            self.gwin.addstr(7,4,self.gtext[1])
+#            self.incurselect = 1
+#        elif self.incurselect == 1:
+#            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.A_REVERSE)
+#            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
+#            self.gwin.addstr(5,1,' '*len(self.gtext[1]))
+#            self.gwin.addstr(7,4,self.gtext[0])
+#            self.incurselect = 0
+#        curses.panel.update_panels()
+#        curses.doupdate()
+#        self.win.refresh()
                
     def Intro_option_select(self):
-        if self.incurselect == 0:
-            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.color_pair(4))
-        else:
-            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1], curses.color_pair(4))
-        curses.panel.update_panels()
-        curses.doupdate()
-        self.win.refresh()
-        time.sleep(.5)
+#        if self.incurselect == 0:
+#            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.color_pair(4))
+#        else:
+#            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1], curses.color_pair(4))
+#        curses.panel.update_panels()
+#        curses.doupdate()
+#        self.win.refresh()
+#        time.sleep(.5)
         self.introdone = True
         self.gpan.hide()
 
@@ -494,6 +500,13 @@ class BaseWin(object):
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
+    
+    def hide_graphPanels(self):
+        for panel in self.graphpansd:
+            self.graphpansd[panel].hide()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
     def addname(self,device,ystrindex,windex):
         self.graphwinsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
@@ -503,9 +516,33 @@ class BaseWin(object):
         Method to draw a '*' at a given y location, at 'num' window.
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
+        try:
+            self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
+            for line in xrange(y+1,self.len_y-1):
+                self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
+        except:
+            pass
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
-        self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
-        
+
+    def graphshow(self,move):
+        if len(self.graphpansd.keys()) == 1:
+            pass
+        else:
+            self.panmvloc += move
+            if self.panmvloc < 0:
+                self.panmvloc = len(self.graphpansd.keys()) - 1
+            if self.panmvloc > len(self.graphpansd.keys()) - 1:
+                self.panmvloc = 0
+            pan = self.graphpansd.keys()[self.panmvloc]
+            self.graphpansd[pan].top()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
+
+
     def refresh(self):
         curses.panel.update_panels()
         curses.doupdate()
