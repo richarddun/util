@@ -7,6 +7,7 @@ import sys
 import subprocess
 import re
 import curses
+import time
 from datahandler import *
 from display import *
 
@@ -42,13 +43,13 @@ def main(win):
     dataspool.open_hash(logfile)
     ns_source = Nstools(logfile,ver)
     log_generator = ns_source.nratechecker()
-    synccount = 1
-    for data in log_generator:
+    #synccount = 1
+    for index,data in enumerate(log_generator):
         dataspool.add_data(data)
-        if synccount % 50 == 0:
-            dataspool.sync_hash()
-        synccount += 1
-    dataspool.sync_hash()
+#        if index % 200 == 0:
+#            dataspool.sync_hash()
+        #synccount += 1
+#    dataspool.sync_hash()
     dataspool.close_hash()
 
     #start of window creation
