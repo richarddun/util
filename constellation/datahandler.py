@@ -27,12 +27,16 @@ class Data_build(object):
            3 - Timestamp (int)
            Also note max/min val/time while reading data
         """
+        tempval = []
+        temptim = []
         if buf[1] == 'sys_cur_duration_sincestart':
             if 'timestamps' in self.shelf.keys():
-                self.shelf['timestamps'].append(buf[2])
+                temptim = self.shelf['timestamps']
+                temptim.append(buf[2])
+                self.shelf['timestamps'] = temptim
             else:
-                self.shelf['timestamps'] = []
-                self.shelf['timestamps'].append(buf[2])
+                temptim.append(buf[2])
+                self.shelf['timestamps'] = temptim
         elif len(buf) == 4:
             self.value = buf[0]
             self.counter_name = buf[1]
@@ -47,16 +51,33 @@ class Data_build(object):
             #write info to shelf
             if not self.counter_name in self.shelf:
                 self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
-                self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
-                self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
+                tempval = self.shelf[self.counter_name][self.devname]['value']
+                tempval.append(int(self.value))
+                self.shelf[self.counter_name][self.devname]['value'] = tempval
+                
+                temptim = self.shelf[self.counter_name][self.devname]['time']
+                temptim.append(int(self.timestamp))
+                self.shelf[self.counter_name][self.devname]['time'] = temptim
+
             if not self.devname in self.shelf[self.counter_name]:
                 self.shelf[self.counter_name].update({self.devname:{'value':[],'time':[]}})
-                self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
-                self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
+
+                tempval = self.shelf[self.counter_name][self.devname]['value']
+                tempval.append(int(self.value))
+                self.shelf[self.counter_name][self.devname]['value'] = tempval
+                
+                temptim = self.shelf[self.counter_name][self.devname]['time']
+                temptim.append(int(self.timestamp))
+                self.shelf[self.counter_name][self.devname]['time'] = temptim
+
             else:
-                self.shelf[self.counter_name][self.devname]['value'].append(int(self.value))
-                self.shelf[self.counter_name][self.devname]['time'].append(int(self.timestamp))
-        
+                tempval = self.shelf[self.counter_name][self.devname]['value']
+                tempval.append(int(self.value))
+                self.shelf[self.counter_name][self.devname]['value'] = tempval
+                
+                temptim = self.shelf[self.counter_name][self.devname]['time']
+                temptim.append(int(self.timestamp))
+                self.shelf[self.counter_name][self.devname]['time'] = temptim
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
@@ -181,14 +202,16 @@ class Nstools(object):
     def __init__(self,nslog,nsver):#countlist
         self.nslog = nslog
         self.counts = ['cc_cpu_use',
-                       'mem_cur_allocsize',
                        'nic_tot_tx_bytes',
                        'nic_tot_rx_bytes',
                        'nic_tot_rx_mbits',
                        'nic_tot_tx_mbits',
                        'vlan_tot_tx_bytes',
                        'vlan_tot_rx_bytes']
-        self.totalclist = ['cc_cpu_use','mem_cur_allocsize']
+        self.totalclist = ['cc_cpu_use']
+        #'mem_cur_allocsize'-implement this once I can figure out 
+        #how to graph it properly
+
         self.metronome = ' -f sys_cur_duration_sincestart '
                 #unique list for these, need special handling
                 #because we look for 'totalcount' and not rate p/sec
