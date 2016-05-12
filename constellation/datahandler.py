@@ -15,11 +15,16 @@ class Data_build(object):
     def __init__(self,maxrets=0):
         self.maxtval = 0 #maximum time value (end of counters) 100 on x index
         self.mintval = 4102444800 #minimum time value (start) 0 on x index
+        self.sdict = {}
 
-    def open_hash(self,name):
-        """Open a shelve instance"""
-        self.shelf = shelve.open(name,writeback=True)
-        self.hashname = name
+#    def open_hash(self,name):
+#        """Open a shelve instance"""
+#        self.sdict = shelve.open(name,writeback=True)
+#        self.hashname = name
+
+#    def flush_data(self):
+#        self.sdict.update(self.sdict)
+#        self.sdict = {}
 
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
@@ -30,13 +35,12 @@ class Data_build(object):
         tempval = []
         temptim = []
         if buf[1] == 'sys_cur_duration_sincestart':
-            if 'timestamps' in self.shelf.keys():
-                temptim = self.shelf['timestamps']
-                temptim.append(buf[2])
-                self.shelf['timestamps'] = temptim
+            if 'timestamps' in self.sdict.keys():
+                self.sdict['timestamps'].append(buf[2])
             else:
-                temptim.append(buf[2])
-                self.shelf['timestamps'] = temptim
+                self.sdict['timestamps'] = []
+                
+                self.sdict['timestamps'].append(buf[2])
         elif len(buf) == 4:
             self.value = buf[0]
             self.counter_name = buf[1]
@@ -48,36 +52,20 @@ class Data_build(object):
                 self.maxtval = self.timestamp
             elif self.timestamp < self.mintval:
                 self.mintval = self.timestamp
-            #write info to shelf
-            if not self.counter_name in self.shelf:
-                self.shelf[self.counter_name] = {self.devname:{'value':[],'time':[]}}
-                tempval = self.shelf[self.counter_name][self.devname]['value']
-                tempval.append(int(self.value))
-                self.shelf[self.counter_name][self.devname]['value'] = tempval
-                
-                temptim = self.shelf[self.counter_name][self.devname]['time']
-                temptim.append(int(self.timestamp))
-                self.shelf[self.counter_name][self.devname]['time'] = temptim
+            #write info to sdict
+            if not self.counter_name in self.sdict:
+                self.sdict[self.counter_name] = {self.devname:{'value':[],'time':[]}}
+                self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
+                self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
 
-            if not self.devname in self.shelf[self.counter_name]:
-                self.shelf[self.counter_name].update({self.devname:{'value':[],'time':[]}})
-
-                tempval = self.shelf[self.counter_name][self.devname]['value']
-                tempval.append(int(self.value))
-                self.shelf[self.counter_name][self.devname]['value'] = tempval
-                
-                temptim = self.shelf[self.counter_name][self.devname]['time']
-                temptim.append(int(self.timestamp))
-                self.shelf[self.counter_name][self.devname]['time'] = temptim
+            if not self.devname in self.sdict[self.counter_name]:
+                self.sdict[self.counter_name].update({self.devname:{'value':[],'time':[]}})
+                self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
+                self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
 
             else:
-                tempval = self.shelf[self.counter_name][self.devname]['value']
-                tempval.append(int(self.value))
-                self.shelf[self.counter_name][self.devname]['value'] = tempval
-                
-                temptim = self.shelf[self.counter_name][self.devname]['time']
-                temptim.append(int(self.timestamp))
-                self.shelf[self.counter_name][self.devname]['time'] = temptim
+                self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
+                self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
@@ -85,7 +73,7 @@ class Data_build(object):
     def get_devs(self,countname):
         """Read shelve keys, return 'Devname' ; Devname is a string identifying an entity
            to track, and update in the shelve instance"""
-        return self.shelf[countname].keys()
+        return self.sdict[countname].keys()
 
     def read_full_value_data(self,countname,devn,maxy,maxx):
         """
@@ -105,26 +93,26 @@ class Data_build(object):
         
         self.yplane = maxy
         self.xplane = maxx
-        self.maxtimlist = list(self.shelf['timestamps'])
+        self.maxtimlist = list(self.sdict['timestamps'])
         if self.maxtimlist < self.xplane:
              self.skipval = 0
         else:
              self.skipval = int(round(float(len(self.maxtimlist))/self.xplane))
        #below is for 'isolated' view (first to implement)
-        self.curmaxval = max(self.shelf[countname][devn]['value'])
-        #self.curminval = min(self.shelf[countname][devname]['value'])
+        self.curmaxval = max(self.sdict[countname][devn]['value'])
+        #self.curminval = min(self.sdict[countname][devname]['value'])
         #self.valoffset = self.curmaxval - self.curminval
         #pdb.set_trace()
-        self.firstime = self.maxtimlist.index(self.shelf[countname][devn]['time'][0])
-        self.lastime = self.maxtimlist.index(self.shelf[countname][devn]['time'][-1])
+        self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
+        self.lastime = self.maxtimlist.index(self.sdict[countname][devn]['time'][-1])
         if self.skipval > 0:
             self.firstindex = int(round(self.firstime/self.skipval))
 
         #pdb.set_trace()
         if self.skipval > 0:
-            for reslice in xrange(self.firstindex,self.xplane-3,self.skipval):
-                    #timeslice = self.shelf[countname][devname]['time'][reslice]
-                    templist = self.shelf[countname][devn]['value'][reslice:reslice + self.skipval]
+            for reslice in xrange(self.firstindex,self.xplane-3):
+                    #timeslice = self.sdict[countname][devname]['time'][reslice]
+                    templist = self.sdict[countname][devn]['value'][reslice:reslice + self.skipval]
                     tempsum = sum(templist)
                     if tempsum < 1:
                         ypcent = 49
@@ -145,7 +133,7 @@ class Data_build(object):
            
         else:
             for reslice in xrange(self.firstime,self.lastime):
-                valuev = self.shelf[countname][devn]['value'][reslice]
+                valuev = self.sdict[countname][devn]['value'][reslice]
                 if valuev < 2:
                     ypcent = 51
                 else :
@@ -161,15 +149,22 @@ class Data_build(object):
            than the shortval, appends to list for future
            reference"""
         shortval = 20
-        for i in self.shelf.keys():
-            for j in self.shelf[i].keys():
+        for i in self.sdict.keys():
+            for j in self.sdict[i].keys():
                 if len(s[i][j]['time']) < shortval:
                     self.shortcounts.append(j)
 
     def topclist(self):
         """Reads and returns list of main counters from 
            shelve"""
-        return [x for x in self.shelf if x != 'timestamps']
+       # pdb.set_trace()
+        templist = []
+        for x in self.sdict:
+            if x == 'timestamps':
+                continue
+            templist.append(x)
+        
+        return templist
 
     def shallow_ret(self):
         """Returns top and middle level data from shelve
@@ -177,23 +172,23 @@ class Data_build(object):
            entries.  For use in display function"""
         shallow_dict = {}
 #        pdb.set_trace()
-        for item in self.shelf.keys():
+        for item in self.sdict.keys():
             if item != 'timestamps':
-                shallow_dict[item] = self.shelf[item].keys()#need to go deeper
+                shallow_dict[item] = self.sdict[item].keys()#need to go deeper
         return shallow_dict
 
-    def sync_hash(self):
-        """Writeback will be enabled, convenience function to sync the 
-           shelve instance"""
-        self.shelf.sync()
+#    def sync_hash(self):
+#        """Writeback will be enabled, convenience function to sync the 
+#           shelve instance"""
+#        self.sdict.sync()
 
-    def close_hash(self):
-        """Convenience function to close the shelve instance"""
-        self.shelf.close()
+#    def close_hash(self):
+#        """Convenience function to close the shelve instance"""
+#        self.sdict.close()
 
-    def rem_hash(self):
-        """Convenience function to remove the shelve .db file"""
-        os.remove(self.hashname)
+#    def rem_hash(self):
+#        """Convenience function to remove the shelve .db file"""
+#        os.remove(self.hashname)
 
 class Nstools(object):
     """NS Tools class instance.  Used to parse and manipulate
