@@ -35,12 +35,7 @@ def main(win):
     curses.curs_set(0)
     y,x=0,1
     dataspool = Data_build()
-#    curses.nocbreak()
-#    stdscr.keypad(0)
-#    curses.echo()
-#    curses.endwin()
-#    import pdb; pdb.set_trace()
-    dataspool.open_hash(logfile)
+#    dataspool.open_hash(logfile)
     ns_source = Nstools(logfile,ver)
     log_generator = ns_source.nratechecker()
     #synccount = 1
@@ -50,36 +45,42 @@ def main(win):
 #            dataspool.sync_hash()
         #synccount += 1
 #    dataspool.sync_hash()
-    dataspool.close_hash()
+#    dataspool.flush_data()
+#    dataspool.close_hash()
 
     #start of window creation
     maxcoords = stdscr.getmaxyx()
     max_Y,max_X = maxcoords[y],maxcoords[x]
-    db_str = logfile + '.db'
-    dataspool.open_hash(db_str)
+#    db_str = logfile + '.db'
+#    dataspool.open_hash(db_str)
     stdscr.refresh()#inexplicably, this is required
     cwin = BaseWin(max_Y,max_X)
     cwin.Intro_Option_draw()#intro screen
     while not cwin.introdone:
         keypress = stdscr.getch()
         if keypress == ord('Q'):
-            dataspool.close_hash()
-            os.remove(os.path.join(os.getcwd(),db_str))
+            #dataspool.close_hash()
+            #os.remove(os.path.join(os.getcwd(),db_str))
             return
             sys.exit()
 #        elif (keypress == curses.KEY_RIGHT) or (keypress == curses.KEY_LEFT):
 #            cwin.Intro_option_move()
         elif keypress == ord(' '):
-            cwin.Intro_option_select()
-    
+             cwin.Intro_option_select()
+#            curses.nocbreak()
+#            stdscr.keypad(0)
+#            curses.echo()
+#            curses.endwin()
+#            import pdb; pdb.set_trace()
+   
     cwin.Main_Cselect(dataspool.topclist(),dataspool.shallow_ret())
     running = True
     while running:
         keypress = stdscr.getch()
         if keypress == ord('Q'):
             running = False
-            dataspool.close_hash()
-            os.remove(os.path.join(os.getcwd(),db_str))
+            #dataspool.close_hash()
+            #os.remove(os.path.join(os.getcwd(),db_str))
             return
         elif keypress == curses.KEY_DOWN:
             if cwin.context == 1:
