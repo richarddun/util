@@ -35,24 +35,15 @@ def main(win):
     curses.curs_set(0)
     y,x=0,1
     dataspool = Data_build()
-#    dataspool.open_hash(logfile)
     ns_source = Nstools(logfile,ver)
     log_generator = ns_source.nratechecker()
     #synccount = 1
     for index,data in enumerate(log_generator):
         dataspool.add_data(data)
-#        if index % 200 == 0:
-#            dataspool.sync_hash()
-        #synccount += 1
-#    dataspool.sync_hash()
-#    dataspool.flush_data()
-#    dataspool.close_hash()
 
     #start of window creation
     maxcoords = stdscr.getmaxyx()
     max_Y,max_X = maxcoords[y],maxcoords[x]
-#    db_str = logfile + '.db'
-#    dataspool.open_hash(db_str)
     stdscr.refresh()#inexplicably, this is required
     cwin = BaseWin(max_Y,max_X)
     cwin.Intro_Option_draw()#intro screen
@@ -63,15 +54,8 @@ def main(win):
             #os.remove(os.path.join(os.getcwd(),db_str))
             return
             sys.exit()
-#        elif (keypress == curses.KEY_RIGHT) or (keypress == curses.KEY_LEFT):
-#            cwin.Intro_option_move()
         elif keypress == ord(' '):
              cwin.Intro_option_select()
-#            curses.nocbreak()
-#            stdscr.keypad(0)
-#            curses.echo()
-#            curses.endwin()
-#            import pdb; pdb.set_trace()
    
     cwin.Main_Cselect(dataspool.topclist(),dataspool.shallow_ret())
     running = True
@@ -79,8 +63,6 @@ def main(win):
         keypress = stdscr.getch()
         if keypress == ord('Q'):
             running = False
-            #dataspool.close_hash()
-            #os.remove(os.path.join(os.getcwd(),db_str))
             return
         elif keypress == curses.KEY_DOWN:
             if cwin.context == 1:
@@ -109,18 +91,7 @@ def main(win):
             elif cwin.context == 3:
                 cwin.graphshow(-1)
         elif (keypress == ord(' ')) and cwin.context == 2:
-            #if len(cwin.toggledev) < 8: 
             cwin.dev_toggle()
-            #else:
-            #    if not cwin.on_toggled():
-            #        cwin.warning = True
-            #        cwin.Selection_Warn_Draw()
-            #        while cwin.warning:
-            #            warnpress = stdscr.getch()
-            #            if warnpress == ord(' '):
-            #                cwin.Selection_Warn_Dismiss()
-            #    else:
-            #        cwin.dev_toggle()
         elif keypress == ord('H') or keypress == ord('h'): 
             cwin.showing_help = True
             cwin.Help_Draw()
@@ -137,8 +108,6 @@ def main(win):
 #            curses.echo()
 #            curses.endwin()
 #            import pdb; pdb.set_trace()
-#            for count,counter in enumerate(cwin.countplotdict):
-#                dataspool.get_longest_len(counter,max_X,count)#just get longest len, each pass
             for index,counter in enumerate(cwin.countplotdict):
                 for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
                     cwin.addname(dev, ylocindex, index)

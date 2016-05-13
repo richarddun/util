@@ -17,15 +17,6 @@ class Data_build(object):
         self.mintval = 4102444800 #minimum time value (start) 0 on x index
         self.sdict = {}
 
-#    def open_hash(self,name):
-#        """Open a shelve instance"""
-#        self.sdict = shelve.open(name,writeback=True)
-#        self.hashname = name
-
-#    def flush_data(self):
-#        self.sdict.update(self.sdict)
-#        self.sdict = {}
-
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
            Values expected : 0 - Value (int),1 - Name (str), 2 - Dev_name (str), 
@@ -47,12 +38,10 @@ class Data_build(object):
             self.devname = buf[2]
             self.timestamp = buf[3]
             #take a note of max/min of time/values for later
-            #doing it here helps improve performance overall
             if self.timestamp > self.maxtval:
                 self.maxtval = self.timestamp
             elif self.timestamp < self.mintval:
                 self.mintval = self.timestamp
-            #write info to sdict
             if not self.counter_name in self.sdict:
                 self.sdict[self.counter_name] = {self.devname:{'value':[],'time':[]}}
                 self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
@@ -98,20 +87,14 @@ class Data_build(object):
              self.skipval = 0
         else:
              self.skipval = int(round(float(len(self.maxtimlist))/self.xplane))
-       #below is for 'isolated' view (first to implement)
         self.curmaxval = max(self.sdict[countname][devn]['value'])
-        #self.curminval = min(self.sdict[countname][devname]['value'])
-        #self.valoffset = self.curmaxval - self.curminval
-        #pdb.set_trace()
         self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         self.lastime = self.maxtimlist.index(self.sdict[countname][devn]['time'][-1])
         if self.skipval > 0:
             self.firstindex = int(round(self.firstime/self.skipval))
 
-        #pdb.set_trace()
         if self.skipval > 0:
             for reslice in xrange(self.firstindex,self.xplane-3):
-                    #timeslice = self.sdict[countname][devname]['time'][reslice]
                     templist = self.sdict[countname][devn]['value'][reslice:reslice + self.skipval]
                     tempsum = sum(templist)
                     if tempsum < 1:
@@ -123,12 +106,8 @@ class Data_build(object):
                         refvalloc = int(round((avgval/self.curmaxval)*100))
                         transient_pc = float(refvalloc)/100
                         ypcent = self.yplane - int(round(self.yplane*transient_pc))
-                    #if reslice > 180:
-                        #pdb.set_trace()
                     if ypcent > 49:
                         ypcent = 49
-                    #if ypcent == 25:
-                        #pdb.set_trace()
                     yield reslice,ypcent
            
         else:
@@ -157,7 +136,6 @@ class Data_build(object):
     def topclist(self):
         """Reads and returns list of main counters from 
            shelve"""
-       # pdb.set_trace()
         templist = []
         for x in self.sdict:
             if x == 'timestamps':
@@ -171,24 +149,10 @@ class Data_build(object):
            i.e. the main counter entry, and the dev 
            entries.  For use in display function"""
         shallow_dict = {}
-#        pdb.set_trace()
         for item in self.sdict.keys():
             if item != 'timestamps':
                 shallow_dict[item] = self.sdict[item].keys()#need to go deeper
         return shallow_dict
-
-#    def sync_hash(self):
-#        """Writeback will be enabled, convenience function to sync the 
-#           shelve instance"""
-#        self.sdict.sync()
-
-#    def close_hash(self):
-#        """Convenience function to close the shelve instance"""
-#        self.sdict.close()
-
-#    def rem_hash(self):
-#        """Convenience function to remove the shelve .db file"""
-#        os.remove(self.hashname)
 
 class Nstools(object):
     """NS Tools class instance.  Used to parse and manipulate
@@ -212,7 +176,6 @@ class Nstools(object):
                 #because we look for 'totalcount' and not rate p/sec
         self.nsver = nsver
         templist = []
-        #pdb.set_trace()
         for count in self.counts:
             templist.append('-f')
             templist.append(count)
