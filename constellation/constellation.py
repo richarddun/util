@@ -103,12 +103,14 @@ def main(win):
         elif ((keypress == ord('G')) or (keypress == ord('g'))) and cwin.context == 2:
             cwin.context = 3
 	    cwin.generate_graphPanels()
-#            curses.nocbreak()
-#            stdscr.keypad(0)
-#            curses.echo()
-#            curses.endwin()
-#            import pdb; pdb.set_trace()
+            #curses.nocbreak()
+            #stdscr.keypad(0)
+            #curses.echo()
+            #curses.endwin()
+            #import pdb; pdb.set_trace()
             for index,counter in enumerate(cwin.countplotdict):
+                for dev in cwin.countplotdict[counter]:
+                    dataspool.fillmaxminvals(counter,dev)
                 for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
                     cwin.addname(dev, ylocindex, index)
                     valuesource = dataspool.read_full_rate_data(counter,dev,max_Y,max_X)
@@ -116,6 +118,7 @@ def main(win):
                         cwin.spray_dots(val,timenotch,index,ylocindex)
         elif (keypress == ord('R')) and cwin.context == 3:
             cwin.hide_graphPanels()
+            dataspool.resetcounters()
             cwin.context = 2
             cwin.refresh()
 

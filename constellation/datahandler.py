@@ -13,9 +13,9 @@ class Data_build(object):
     """Class to interact with python shelve to build/read/write/destroy shelves 
        based on need"""
     def __init__(self,maxrets=0):
-        self.maxtval = 0 #maximum time value (end of counters) 100 on x index
-        self.mintval = 4102444800 #minimum time value (start) 0 on x index
         self.sdict = {}
+        self.hitmax = False
+        self.hitmin = False
 
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
@@ -38,10 +38,6 @@ class Data_build(object):
             self.devname = buf[2]
             self.timestamp = buf[3]
             #take a note of max/min of time/values for later
-            if self.timestamp > self.maxtval:
-                self.maxtval = self.timestamp
-            elif self.timestamp < self.mintval:
-                self.mintval = self.timestamp
             if not self.counter_name in self.sdict:
                 self.sdict[self.counter_name] = {self.devname:{'value':[],'time':[]}}
                 self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
@@ -64,13 +60,31 @@ class Data_build(object):
            to track, and update in the shelve instance"""
         return self.sdict[countname].keys()
 
-    def read_full_value_data(self,countname,devn,maxy,maxx):
-        """
-        Read and return data from the shelve instance.
-        This method reads only counters that represent
-        full data (i.e. not rate per second)
-        """
-        pass
+    def resetcounters(self):
+        delattr(self,'maxrate')
+        delattr(self,'minrate')
+        delattr(self,'spanrte')
+        delattr(self,'maxmindict')
+
+    def fillmaxminvals(self,countname,dev):
+        curmax = max(self.sdict[countname][dev]['value'])
+        curmin = min(self.sdict[countname][dev]['value'])
+        if not hasattr(self, 'maxrate'):
+            self.maxrate = curmax
+            self.minrate = curmin
+            self.spanrte = self.maxrate - self.minrate
+            self.maxmindict = {countname:{'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrte}}
+        else:
+            if self.maxrate < curmax:
+                self.maxrate = curmax
+                self.hitmax = True
+            if self.minrate > curmin:
+                self.minrate = curmin
+                self.hitmin = True
+            if self.hitmax or self.hitmin:
+                self.spanrte = self.maxrate - self.minrate
+                self.maxmindict[countname] = {'maxrate':self.maxrate,
+                    'minrate':self.minrate,'spanrate':self.spanrte}
 
     def read_full_rate_data(self,countname,devn,maxy,maxx):
         """Read and return data from the shelve instance.
@@ -87,14 +101,15 @@ class Data_build(object):
              self.skipval = 0
         else:
              self.skipval = int(round(float(len(self.maxtimlist))/self.xplane))
-        self.curmaxval = max(self.sdict[countname][devn]['value'])
+        #self.curmaxval = max(self.sdict[countname][devn]['value'])
         self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         self.lastime = self.maxtimlist.index(self.sdict[countname][devn]['time'][-1])
-        if self.skipval > 0:
-            self.firstindex = int(round(self.firstime/self.skipval))
+#        pdb.set_trace()
+        #if self.skipval > 0:
+            #self.firstindex = int(round(self.firstime/self.skipval))
 
         if self.skipval > 0:
-            for reslice in xrange(self.firstindex,self.xplane-3):
+            for reslice in xrange(self.firstime,self.xplane-1):
                     templist = self.sdict[countname][devn]['value'][reslice:reslice + self.skipval]
                     tempsum = sum(templist)
                     if tempsum < 1:
@@ -103,7 +118,8 @@ class Data_build(object):
                         avgval = int(round(tempsum / self.skipval))
                         if avgval == 1:#ugly hack.  It needs to work soon.
                             avgval = 0
-                        refvalloc = int(round((avgval/self.curmaxval)*100))
+                        refvalloc = int(round((avgval/
+                            self.maxmindict[countname]['spanrate'])*100))
                         transient_pc = float(refvalloc)/100
                         ypcent = self.yplane - int(round(self.yplane*transient_pc))
                     if ypcent > 49:
