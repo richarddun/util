@@ -4,6 +4,7 @@
 import curses
 from curses import panel
 import time
+import os 
 
 class BaseWin(object):
     """
@@ -486,6 +487,8 @@ class BaseWin(object):
         """
         self.graphwinsl = []
         self.graphpansd = {}
+        self.gwlegendsl = []
+        self.gplegendsd = {}
         self.countplotdict = {}
         counter,dev = 0,1
         for entry in self.toggledev:
@@ -496,7 +499,10 @@ class BaseWin(object):
         for index,entry in enumerate(self.countplotdict):
             self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0))
             self.graphpansd[entry] = curses.panel.new_panel(self.graphwinsl[index])
-            self.graphwinsl[index].addstr(1,1,entry)
+            self.gwlegendsl.append(curses.newwin(8,self.len_x/4,2,2))
+            self.gplegendsd[entry] = curses.panel.new_panel(self.gwlegendsl[index])
+
+            self.gwlegendsl[index].addstr(1,1,entry)
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
@@ -504,28 +510,47 @@ class BaseWin(object):
     def hide_graphPanels(self):
         for panel in self.graphpansd:
             self.graphpansd[panel].hide()
+        for panel in self.gplegendsd:
+            self.gplegendsd[panel].hide()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
 
     def addname(self,device,ystrindex,windex):
-        self.graphwinsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
+        self.gwlegendsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
 
     def spray_dots(self,y,x,num,color):
         """
         Method to draw a '*' at a given y location, at 'num' window.
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
-#        try:
-        self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
-        for line in xrange(y+1,self.len_y-1):
-            self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
-#        except:
-#            pass
+        with open(os.path.join(os.getcwd(),'yx.txt'),'a') as outfile:
+            outfile.write('y : ' + str(y) + ' x : ' + str(x) + ' num : ' + str(num) +'\n')
+            try:
+                self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
+                for line in xrange(y+1,self.len_y-1):
+                    self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
+            except:
+                pass
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
 
+    def refresh_respray(self,y,x,num,color):
+        pass
+
+    def toggle_legend(self):
+        if hasattr(self,'legendshow'):
+            pan = self.gplegendsd.keys()[self.panmvloc]
+            self.gplegendsd[pan].hide()
+            delattr(self,'legendshow')
+        else:
+            self.legendshow = True
+            pan = self.gplegendsd.keys()[self.panmvloc]
+            self.gplegendsd[pan].top()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
     def graphshow(self,move):
         if len(self.graphpansd.keys()) == 1:
@@ -538,6 +563,8 @@ class BaseWin(object):
                 self.panmvloc = 0
             pan = self.graphpansd.keys()[self.panmvloc]
             self.graphpansd[pan].top()
+            pan = self.gplegendsd.keys()[self.panmvloc]
+            self.gplegendsd[pan].top()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()

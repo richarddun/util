@@ -16,6 +16,7 @@ class Data_build(object):
         self.sdict = {}
         self.hitmax = False
         self.hitmin = False
+        self.offset = 0
 
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
@@ -85,34 +86,37 @@ class Data_build(object):
                 self.spanrate = self.maxrate - self.minrate
                 self.maxmindict[countname] = {'maxrate':self.maxrate,
                     'minrate':self.minrate,'spanrate':self.spanrate}
+                self.hitmax,self.hitmin = False,False
 
-    def read_full_rate_data(self,countname,devn,maxy,maxx,offset=None):
-        """Read and return data from the shelve instance.
+    def prep_data(self,maxy,maxx):
+        """
+        prepare some variables that I can't initialise
+        anywhere else (without a non-trivial redesign)
+        """
+        self.maxtimlist = list(self.sdict['timestamps'])
+        self.yplane = maxy
+        self.xplane = maxx
+        self.lastime = len(self.maxtimlist) - 1
+
+
+    def read_full_rate_data(self,countname,devn,offset=None):
+        """Read and return data
            Optimises output to write easy to plot values,
            from 0 - 100 (minimum/maximum)
            Accepts countername, device name, relative y,
            relative x (to calculate 0/100)
         """
         
-        self.yplane = maxy
-        self.xplane = maxx
-        self.maxtimlist = list(self.sdict['timestamps'])
-        if self.maxtimlist < self.xplane:
-             self.skipval = 0
-        else:
-             self.skipval = int(round(float(len(self.maxtimlist))/self.xplane))
         if offset == None:
             self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         else: 
             self.firstime = offset
-        self.lastime = self.maxtimlist.index(self.sdict[countname][devn]['time'][-1])
-        
 
-        for reslice in xrange(self.firstime,self.lastime):
-            try:
-                valuev = self.sdict[countname][devn]['value'][reslice]
-            except:
-                break
+        for reslice in xrange(0,len(self.sdict[countname][devn]['time'])-1):
+            #try:
+            valuev = self.sdict[countname][devn]['value'][reslice]
+            #except:
+            #    continue
             if valuev < 2:
                 ypcent = 49
             else :
