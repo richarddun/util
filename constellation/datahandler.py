@@ -86,7 +86,7 @@ class Data_build(object):
                 self.maxmindict[countname] = {'maxrate':self.maxrate,
                     'minrate':self.minrate,'spanrate':self.spanrate}
 
-    def read_full_rate_data(self,countname,devn,maxy,maxx):
+    def read_full_rate_data(self,countname,devn,maxy,maxx,offset=None):
         """Read and return data from the shelve instance.
            Optimises output to write easy to plot values,
            from 0 - 100 (minimum/maximum)
@@ -101,56 +101,27 @@ class Data_build(object):
              self.skipval = 0
         else:
              self.skipval = int(round(float(len(self.maxtimlist))/self.xplane))
-        #self.curmaxval = max(self.sdict[countname][devn]['value'])
-        self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
+        if offset == None:
+            self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
+        else: 
+            self.firstime = offset
         self.lastime = self.maxtimlist.index(self.sdict[countname][devn]['time'][-1])
-#        pdb.set_trace()
-        #if self.skipval > 0:
-            #self.firstindex = int(round(self.firstime/self.skipval))
+        
 
-        if self.skipval > 0:
-            for reslice in xrange(self.firstime,self.xplane-1):
-                    templist = self.sdict[countname][devn]['value'][reslice:reslice + self.skipval]
-                    tempsum = sum(templist)
-                    if tempsum < 1:
-                        ypcent = 49
-                    else:
-                        avgval = int(round(tempsum / self.skipval))
-                        if avgval == 1:#ugly hack.  It needs to work soon.
-                            avgval = 0
-                        refvalloc = int(round((avgval/
-                            self.maxmindict[countname]['spanrate'])*100))
-                        transient_pc = float(refvalloc)/100
-                        ypcent = self.yplane - int(round(self.yplane*transient_pc))
-                    if ypcent > 49:
-                        ypcent = 49
-                    yield reslice,ypcent
-           
-        else:
-            for reslice in xrange(self.firstime,self.lastime):
-                try:
-                    valuev = self.sdict[countname][devn]['value'][reslice]
-                except:
-                    break
-                if valuev < 2:
-                    ypcent = 51
-                else :
-                    refvalloc = int(round((valuev/self.spanrate)*100))
-                    transient_pc = float(refvalloc)/100
-                    ypcent = self.yplane - int(round(self.yplane*transient_pc))
-                yield reslice,ypcent
-
-    def shortlist(self):
-        """identify counters which have a short lifespan and
-           add to a list for reference 
-           Counts len of each time list and if len is less
-           than the shortval, appends to list for future
-           reference"""
-        shortval = 20
-        for i in self.sdict.keys():
-            for j in self.sdict[i].keys():
-                if len(s[i][j]['time']) < shortval:
-                    self.shortcounts.append(j)
+        for reslice in xrange(self.firstime,self.lastime):
+            try:
+                valuev = self.sdict[countname][devn]['value'][reslice]
+            except:
+                break
+            if valuev < 2:
+                ypcent = 49
+            else :
+                refvalloc = int(round((valuev/self.spanrate)*100))
+                transient_pc = float(refvalloc)/100
+                ypcent = self.yplane - int(round(self.yplane*transient_pc))
+                if ypcent > 49:
+                    ypcent = 49
+            yield reslice,ypcent
 
     def topclist(self):
         """Reads and returns list of main counters from 
