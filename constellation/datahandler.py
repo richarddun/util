@@ -63,7 +63,7 @@ class Data_build(object):
     def resetcounters(self):
         delattr(self,'maxrate')
         delattr(self,'minrate')
-        delattr(self,'spanrte')
+        delattr(self,'spanrate')
         delattr(self,'maxmindict')
 
     def fillmaxminvals(self,countname,dev):
@@ -72,8 +72,8 @@ class Data_build(object):
         if not hasattr(self, 'maxrate'):
             self.maxrate = curmax
             self.minrate = curmin
-            self.spanrte = self.maxrate - self.minrate
-            self.maxmindict = {countname:{'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrte}}
+            self.spanrate = self.maxrate - self.minrate
+            self.maxmindict = {countname:{'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}}
         else:
             if self.maxrate < curmax:
                 self.maxrate = curmax
@@ -82,9 +82,9 @@ class Data_build(object):
                 self.minrate = curmin
                 self.hitmin = True
             if self.hitmax or self.hitmin:
-                self.spanrte = self.maxrate - self.minrate
+                self.spanrate = self.maxrate - self.minrate
                 self.maxmindict[countname] = {'maxrate':self.maxrate,
-                    'minrate':self.minrate,'spanrate':self.spanrte}
+                    'minrate':self.minrate,'spanrate':self.spanrate}
 
     def read_full_rate_data(self,countname,devn,maxy,maxx):
         """Read and return data from the shelve instance.
@@ -128,11 +128,14 @@ class Data_build(object):
            
         else:
             for reslice in xrange(self.firstime,self.lastime):
-                valuev = self.sdict[countname][devn]['value'][reslice]
+                try:
+                    valuev = self.sdict[countname][devn]['value'][reslice]
+                except:
+                    break
                 if valuev < 2:
                     ypcent = 51
                 else :
-                    refvalloc = int(round((valuev/self.curmaxval)*100))
+                    refvalloc = int(round((valuev/self.spanrate)*100))
                     transient_pc = float(refvalloc)/100
                     ypcent = self.yplane - int(round(self.yplane*transient_pc))
                 yield reslice,ypcent
