@@ -17,6 +17,7 @@ class Data_build(object):
         self.hitmax = False
         self.hitmin = False
         self.offset = 0
+        self.drawtrack = {}
 
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
@@ -43,15 +44,18 @@ class Data_build(object):
                 self.sdict[self.counter_name] = {self.devname:{'value':[],'time':[]}}
                 self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
                 self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
+                self.drawtrack[self.counter_name] = {self.devname:{'overallen':1,'offset':0}}
 
             if not self.devname in self.sdict[self.counter_name]:
                 self.sdict[self.counter_name].update({self.devname:{'value':[],'time':[]}})
                 self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
                 self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
+                self.drawtrack[self.counter_name].update({self.devname:{'overallen':1,'offset':0}})
 
             else:
                 self.sdict[self.counter_name][self.devname]['value'].append(int(self.value))
                 self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
+                self.drawtrack[self.counter_name][self.devname]['overallen']+=1
         else:
             raise ValueError('Attempted to add more or less than 4 items as shelve record')
             return 2
