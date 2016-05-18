@@ -83,11 +83,17 @@ def main(win):
                 cwin.context = 2
                 cwin.p_jump()
             if cwin.context == 3:
-                #TODO - add clear of current window, redraw +1 screenlen with new offset
+                #clear of current window, redraw +1 screenlen with new offset
                 curcounter = cwin.countplotdict.keys()[cwin.panmvloc]
                 cwin.clear_win(cwin.panmvloc)
                 for i, dev in enumerate(cwin.countplotdict[curcounter]):
-                    dataspool.drawtrack[curcounter][dev]['offset'] += max_X
+                    if dataspool.drawtrack[curcounter][dev]['overallen'] < max_X:
+                        dataspool.drawtrack[curcounter][dev]['offset'] = 0
+                    elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X < dataspool.drawtrack[curcounter][dev]['overallen']:
+                        dataspool.drawtrack[curcounter][dev]['offset'] += max_X
+                    elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X > dataspool.drawtrack[curcounter][dev]['overallen']:
+                        dataspool.drawtrack[curcounter][dev]['offset'] = dataspool.drawtrack[curcounter][dev]['overallen'] - dataspool.drawtrack[curcounter][dev]['offset']
+
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     #running = False
                     #curses.nocbreak()
@@ -110,7 +116,11 @@ def main(win):
                 curcounter = cwin.countplotdict.keys()[cwin.panmvloc]
                 cwin.clear_win(cwin.panmvloc)
                 for i, dev in enumerate(cwin.countplotdict[curcounter]):
-                    dataspool.drawtrack[curcounter][dev]['offset'] -= max_X
+                    if dataspool.drawtrack[curcounter][dev]['offset'] - max_X >= 0:
+                        dataspool.drawtrack[curcounter][dev]['offset'] -= max_X
+                    else:
+                        dataspool.drawtrack[curcounter][dev]['offset'] = 0
+                    
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     #running = False
                     #curses.nocbreak()

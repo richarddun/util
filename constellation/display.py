@@ -542,12 +542,15 @@ class BaseWin(object):
 
     def toggle_legend(self):
         if hasattr(self,'legendshow'):
-            for pan in self.gplegendsd.keys():
-                self.gplegendsd[pan].top()
+            for index,pan in enumerate(self.gplegendsd):
+                if index == self.panmvloc:
+                    self.gplegendsd[pan].top()
             delattr(self,'legendshow')
         else:
             self.legendshow = True
-            for pan in self.gplegendsd.keys():
+            for index,pan in enumerate(self.gplegendsd):
+                #if index == self.panmvloc:
+                #    pass
                 self.gplegendsd[pan].hide()
         curses.panel.update_panels()
         curses.doupdate()
@@ -568,7 +571,7 @@ class BaseWin(object):
             self.gplegendsd[pan].top()
         curses.panel.update_panels()
         curses.doupdate()
-        self.win.refresh()
+        self.graphwinsl[self.panmvloc].refresh()
 
 
     def one_refresh(self,num):

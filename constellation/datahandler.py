@@ -102,7 +102,6 @@ class Data_build(object):
         self.xplane = maxx
         self.lastime = len(self.maxtimlist) - 1
 
-
     def read_full_rate_data(self,countname,devn,offset=None):
         """Read and return data
            Optimises output to write easy to plot values,
@@ -111,24 +110,30 @@ class Data_build(object):
            relative x (to calculate 0/100)
         """
         
+        
         if offset == None:
             self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         else: 
             self.firstime = offset
             #pdb.set_trace()
-        for reslice in xrange(self.firstime,len(self.sdict[countname][devn]['time'])-1):
+        for reslice in xrange(self.firstime,self.drawtrack[countname][devn]['overallen']):
             #try:
             valuev = self.sdict[countname][devn]['value'][reslice]
             #except:
             #    continue
-            if valuev < 2:
-                ypcent = 49
-            else :
+            #if valuev < 2:
+            #    ypcent = 49
+            #else :
+
+            if countname == 'cc_cpu_use':
+                transient_pc = valuev/100     
+            
+            else:
                 refvalloc = int(round((valuev/self.spanrate)*100))
                 transient_pc = float(refvalloc)/100
-                ypcent = self.yplane - int(round(self.yplane*transient_pc))
-                if ypcent > 49:
-                    ypcent = 49
+            ypcent = self.yplane - int(round(self.yplane*transient_pc))
+            if ypcent > 49:
+                ypcent = 49
             yield reslice,ypcent
 
     def topclist(self):
