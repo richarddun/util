@@ -115,8 +115,8 @@ class Data_build(object):
             self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         else: 
             self.firstime = offset
-
-        for reslice in xrange(0,len(self.sdict[countname][devn]['time'])-1):
+            #pdb.set_trace()
+        for reslice in xrange(self.firstime,len(self.sdict[countname][devn]['time'])-1):
             #try:
             valuev = self.sdict[countname][devn]['value'][reslice]
             #except:

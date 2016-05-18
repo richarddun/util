@@ -524,20 +524,21 @@ class BaseWin(object):
         Method to draw a '*' at a given y location, at 'num' window.
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
-        with open(os.path.join(os.getcwd(),'yx.txt'),'a') as outfile:
-            outfile.write('y : ' + str(y) + ' x : ' + str(x) + ' num : ' + str(num) +'\n')
-            try:
-                self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
-                for line in xrange(y+1,self.len_y-1):
-                    self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
-            except:
-                pass
+        try: 
+            self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
+        
+            for line in xrange(y+1,self.len_y-1):
+                self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
+        except:
+            pass
         curses.panel.update_panels()
         curses.doupdate()
-        self.win.refresh()
 
-    def refresh_respray(self,y,x,num,color):
-        pass
+    def clear_win(self,num):
+        self.graphwinsl[self.panmvloc].clear()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.graphwinsl[self.panmvloc].refresh()
 
     def toggle_legend(self):
         if hasattr(self,'legendshow'):
@@ -569,6 +570,9 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
 
+
+    def one_refresh(self,num):
+        self.graphwinsl[num].refresh()
 
     def refresh(self):
         curses.panel.update_panels()

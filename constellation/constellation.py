@@ -84,7 +84,22 @@ def main(win):
                 cwin.p_jump()
             if cwin.context == 3:
                 #TODO - add clear of current window, redraw +1 screenlen with new offset
-                pass
+                curcounter = cwin.countplotdict.keys()[cwin.panmvloc]
+                cwin.clear_win(cwin.panmvloc)
+                for i, dev in enumerate(cwin.countplotdict[curcounter]):
+                    dataspool.drawtrack[curcounter][dev]['offset'] += max_X
+                    curoffset = dataspool.drawtrack[curcounter][dev]['offset']
+                    #running = False
+                    #curses.nocbreak()
+                    #stdscr.keypad(0)
+                    #curses.echo()
+                    #curses.endwin()
+                    #import pdb; pdb.set_trace()
+                    refillsource = dataspool.read_full_rate_data(curcounter,dev,offset=curoffset)
+                    for timenotch,val in refillsource:
+                        cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
+                cwin.one_refresh(cwin.panmvloc)
+
         elif (keypress == ord('\t') or keypress == 9) and cwin.context == 3:
                 cwin.graphshow(1)
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
@@ -92,8 +107,21 @@ def main(win):
                 cwin.context = 1
                 cwin.m_jump()
             if cwin.context == 3:
-                #TODO - add clear of current window, redraw -1 screenlen with new offset
-                pass
+                curcounter = cwin.countplotdict.keys()[cwin.panmvloc]
+                cwin.clear_win(cwin.panmvloc)
+                for i, dev in enumerate(cwin.countplotdict[curcounter]):
+                    dataspool.drawtrack[curcounter][dev]['offset'] -= max_X
+                    curoffset = dataspool.drawtrack[curcounter][dev]['offset']
+                    #running = False
+                    #curses.nocbreak()
+                    #stdscr.keypad(0)
+                    #curses.echo()
+                    #curses.endwin()
+                    #import pdb; pdb.set_trace()
+                    refillsource = dataspool.read_full_rate_data(curcounter,dev,offset=curoffset)
+                    for timenotch,val in refillsource:
+                        cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
+                cwin.one_refresh(cwin.panmvloc)
         elif keypress == curses.KEY_BTAB and cwin.context == 3:
                 cwin.graphshow(-1)
         elif (keypress == ord(' ')) and cwin.context == 2:
@@ -108,6 +136,7 @@ def main(win):
 
         elif ((keypress == ord('G')) or (keypress == ord('g'))) and cwin.context == 2:
             cwin.context = 3
+            curoffset = 0
 	    cwin.generate_graphPanels()
             #curses.nocbreak()
             #stdscr.keypad(0)
