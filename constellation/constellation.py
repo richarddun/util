@@ -82,12 +82,18 @@ def main(win):
             if cwin.context == 1:
                 cwin.context = 2
                 cwin.p_jump()
+            if cwin.context == 3:
+                #TODO - add clear of current window, redraw +1 screenlen with new offset
+                pass
         elif (keypress == ord('\t') or keypress == 9) and cwin.context == 3:
                 cwin.graphshow(1)
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
             if cwin.context == 2:
                 cwin.context = 1
                 cwin.m_jump()
+            if cwin.context == 3:
+                #TODO - add clear of current window, redraw -1 screenlen with new offset
+                pass
         elif keypress == curses.KEY_BTAB and cwin.context == 3:
                 cwin.graphshow(-1)
         elif (keypress == ord(' ')) and cwin.context == 2:
