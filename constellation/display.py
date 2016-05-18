@@ -541,13 +541,13 @@ class BaseWin(object):
 
     def toggle_legend(self):
         if hasattr(self,'legendshow'):
-            pan = self.gplegendsd.keys()[self.panmvloc]
-            self.gplegendsd[pan].hide()
+            for pan in self.gplegendsd.keys():
+                self.gplegendsd[pan].top()
             delattr(self,'legendshow')
         else:
             self.legendshow = True
-            pan = self.gplegendsd.keys()[self.panmvloc]
-            self.gplegendsd[pan].top()
+            for pan in self.gplegendsd.keys():
+                self.gplegendsd[pan].hide()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
