@@ -500,7 +500,7 @@ class BaseWin(object):
         for index,entry in enumerate(self.countplotdict):
             self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0))
             self.graphpansd[entry] = curses.panel.new_panel(self.graphwinsl[index])
-            self.gwlegendsl.append(curses.newwin(8,self.len_x/4,2,2))
+            self.gwlegendsl.append(curses.newwin(8,self.len_x/4,2,(self.len_x/4*3)))
             self.gplegendsd[entry] = curses.panel.new_panel(self.gwlegendsl[index])
 
             self.gwlegendsl[index].addstr(1,1,entry)
@@ -535,6 +535,12 @@ class BaseWin(object):
         curses.panel.update_panels()
         curses.doupdate()
 
+    def annotate_x(self,num):
+        pass
+
+    def annotate_y(self,num):
+        pass
+
     def clear_win(self,num):
         self.graphwinsl[self.panmvloc].clear()
         curses.panel.update_panels()
@@ -543,6 +549,8 @@ class BaseWin(object):
 
     def toggle_legend(self):
         if hasattr(self,'legendshow'):
+            for pan in self.gplegendsd:
+                self.gplegendsd[pan].top()
             for index,pan in enumerate(self.gplegendsd):
                 if index == self.panmvloc:
                     self.gplegendsd[pan].top()

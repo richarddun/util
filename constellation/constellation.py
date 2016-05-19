@@ -91,9 +91,8 @@ def main(win):
                         dataspool.drawtrack[curcounter][dev]['offset'] = 0
                     elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X < dataspool.drawtrack[curcounter][dev]['overallen']:
                         dataspool.drawtrack[curcounter][dev]['offset'] += max_X
-                    elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X > dataspool.drawtrack[curcounter][dev]['overallen']:
-                        dataspool.drawtrack[curcounter][dev]['offset'] = dataspool.drawtrack[curcounter][dev]['overallen'] - dataspool.drawtrack[curcounter][dev]['offset']
-
+                    #elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X > dataspool.drawtrack[curcounter][dev]['overallen']:
+                    #    dataspool.drawtrack[curcounter][dev]['offset'] = dataspool.drawtrack[curcounter][dev]['overallen'] - dataspool.drawtrack[curcounter][dev]['offset']
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     #running = False
                     #curses.nocbreak()
