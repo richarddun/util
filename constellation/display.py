@@ -504,6 +504,9 @@ class BaseWin(object):
             self.gplegendsd[entry] = curses.panel.new_panel(self.gwlegendsl[index])
 
             self.gwlegendsl[index].addstr(1,1,entry)
+        for index,entry in enumerate(self.countplotdict):
+            if index == 0:
+                self.graphpansd[entry].top()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
