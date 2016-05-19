@@ -7,10 +7,12 @@ Space key - Select or De-select a Device (in submenu)
 Shift + G - compute and (G)raph device and rate
 Shift + R - (R)eturn to counter select menu
 Shift + H - Show or hide this (H)elp message
+Shift + Q - (Q)uit
 
 Graph Navigation / Use Help
 
-Left arrow / Right arrow - shuffle between available devices / graphs
+Tab / Shift + Tab - shuffle between available devices / graphs
 Shift + R  - (R)eturn to counter select menu
-Shift and H - Show or hide this help message
+Shift and H - Show or hide this (H)elp message
+Left/Right arrow - Backward/Forward through timeline
 

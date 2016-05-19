@@ -3,7 +3,9 @@
 
 import curses
 from curses import panel
+from collections import OrderedDict
 import time
+import os 
 
 class BaseWin(object):
     """
@@ -42,7 +44,7 @@ class BaseWin(object):
         self.s_curloc = 1 #track index (subwin current)
         self.s_prevloc = 1 #track index (subwin previous)
         self.maxstrlen = 0
-        self.pan_selectref = {}
+        self.pan_selectref = OrderedDict({})
         self.panmvloc = 0
         self.toggledev = []
         self.introdone = False
@@ -168,9 +170,9 @@ class BaseWin(object):
         """
         self.upperclist = topclist #main list of counters
         self.countmap = countermap #dict containing counter:devs
-        self.mlocationref = {} 
+        self.mlocationref = OrderedDict({}) 
         self.subwinls = [] #sub window list
-        self.subpans = {} #sub panels dict
+        self.subpans = OrderedDict({}) #sub panels dict
         self.rightshift = 1
         self.writeoffset =1
         self.paneldevlist = []
@@ -485,8 +487,10 @@ class BaseWin(object):
         counterplotdict = {counter:[dev,dev,dev,dev],counter:[dev,dev,dev]}
         """
         self.graphwinsl = []
-        self.graphpansd = {}
-        self.countplotdict = {}
+        self.graphpansd = OrderedDict({})
+        self.gwlegendsl = []
+        self.gplegendsd = OrderedDict({})
+        self.countplotdict = OrderedDict({})
         counter,dev = 0,1
         for entry in self.toggledev:
             if entry[counter] in self.countplotdict:
@@ -496,7 +500,10 @@ class BaseWin(object):
         for index,entry in enumerate(self.countplotdict):
             self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0))
             self.graphpansd[entry] = curses.panel.new_panel(self.graphwinsl[index])
-            self.graphwinsl[index].addstr(1,1,entry)
+            self.gwlegendsl.append(curses.newwin(8,self.len_x/4,2,(self.len_x/4*3)))
+            self.gplegendsd[entry] = curses.panel.new_panel(self.gwlegendsl[index])
+
+            self.gwlegendsl[index].addstr(1,1,entry)
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
@@ -504,28 +511,59 @@ class BaseWin(object):
     def hide_graphPanels(self):
         for panel in self.graphpansd:
             self.graphpansd[panel].hide()
+        for panel in self.gplegendsd:
+            self.gplegendsd[panel].hide()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
 
     def addname(self,device,ystrindex,windex):
-        self.graphwinsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
+        self.gwlegendsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
 
     def spray_dots(self,y,x,num,color):
         """
         Method to draw a '*' at a given y location, at 'num' window.
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
-        try:
+        try: 
             self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
-            for line in xrange(y+1,self.len_y-1):
+        
+            for line in xrange(y+1,self.len_y):
                 self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
         except:
             pass
         curses.panel.update_panels()
         curses.doupdate()
-        self.win.refresh()
 
+    def annotate_x(self,num):
+        pass
+
+    def annotate_y(self,num):
+        pass
+
+    def clear_win(self,num):
+        self.graphwinsl[self.panmvloc].clear()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.graphwinsl[self.panmvloc].refresh()
+
+    def toggle_legend(self):
+        if hasattr(self,'legendshow'):
+            for pan in self.gplegendsd:
+                self.gplegendsd[pan].top()
+            for index,pan in enumerate(self.gplegendsd):
+                if index == self.panmvloc:
+                    self.gplegendsd[pan].top()
+            delattr(self,'legendshow')
+        else:
+            self.legendshow = True
+            for index,pan in enumerate(self.gplegendsd):
+                #if index == self.panmvloc:
+                #    pass
+                self.gplegendsd[pan].hide()
+        curses.panel.update_panels()
+        curses.doupdate()
+        self.win.refresh()
 
     def graphshow(self,move):
         if len(self.graphpansd.keys()) == 1:
@@ -538,10 +576,15 @@ class BaseWin(object):
                 self.panmvloc = 0
             pan = self.graphpansd.keys()[self.panmvloc]
             self.graphpansd[pan].top()
+            pan = self.gplegendsd.keys()[self.panmvloc]
+            self.gplegendsd[pan].top()
         curses.panel.update_panels()
         curses.doupdate()
-        self.win.refresh()
+        self.graphwinsl[self.panmvloc].refresh()
 
+
+    def one_refresh(self,num):
+        self.graphwinsl[num].refresh()
 
     def refresh(self):
         curses.panel.update_panels()
