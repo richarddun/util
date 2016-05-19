@@ -2,6 +2,7 @@
 """Data gathering and read-write access to persistent storage"""
 
 from __future__ import division
+from collections import OrderedDict
 import shelve
 import os
 import subprocess
@@ -13,11 +14,11 @@ class Data_build(object):
     """Class to interact with python shelve to build/read/write/destroy shelves 
        based on need"""
     def __init__(self,maxrets=0):
-        self.sdict = {}
+        self.sdict = OrderedDict({})
         self.hitmax = False
         self.hitmin = False
         self.offset = 0
-        self.drawtrack = {}
+        self.drawtrack = OrderedDict({})
 
     def add_data(self,buf):
         """Add data passed from list containing specific values to a shelve record
@@ -109,25 +110,15 @@ class Data_build(object):
            Accepts countername, device name, relative y,
            relative x (to calculate 0/100)
         """
-        
-        
         if offset == None:
             self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         else: 
             self.firstime = offset
-            #pdb.set_trace()
+        
         for reslice in xrange(self.firstime,self.drawtrack[countname][devn]['overallen']):
-            #try:
             valuev = self.sdict[countname][devn]['value'][reslice]
-            #except:
-            #    continue
-            #if valuev < 2:
-            #    ypcent = 49
-            #else :
-
             if countname == 'cc_cpu_use':
                 transient_pc = valuev/100     
-            
             else:
                 refvalloc = int(round((valuev/self.spanrate)*100))
                 transient_pc = float(refvalloc)/100

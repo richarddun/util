@@ -3,6 +3,7 @@
 
 import curses
 from curses import panel
+from collections import OrderedDict
 import time
 import os 
 
@@ -43,7 +44,7 @@ class BaseWin(object):
         self.s_curloc = 1 #track index (subwin current)
         self.s_prevloc = 1 #track index (subwin previous)
         self.maxstrlen = 0
-        self.pan_selectref = {}
+        self.pan_selectref = OrderedDict({})
         self.panmvloc = 0
         self.toggledev = []
         self.introdone = False
@@ -169,9 +170,9 @@ class BaseWin(object):
         """
         self.upperclist = topclist #main list of counters
         self.countmap = countermap #dict containing counter:devs
-        self.mlocationref = {} 
+        self.mlocationref = OrderedDict({}) 
         self.subwinls = [] #sub window list
-        self.subpans = {} #sub panels dict
+        self.subpans = OrderedDict({}) #sub panels dict
         self.rightshift = 1
         self.writeoffset =1
         self.paneldevlist = []
@@ -486,10 +487,10 @@ class BaseWin(object):
         counterplotdict = {counter:[dev,dev,dev,dev],counter:[dev,dev,dev]}
         """
         self.graphwinsl = []
-        self.graphpansd = {}
+        self.graphpansd = OrderedDict({})
         self.gwlegendsl = []
-        self.gplegendsd = {}
-        self.countplotdict = {}
+        self.gplegendsd = OrderedDict({})
+        self.countplotdict = OrderedDict({})
         counter,dev = 0,1
         for entry in self.toggledev:
             if entry[counter] in self.countplotdict:
@@ -527,7 +528,7 @@ class BaseWin(object):
         try: 
             self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
         
-            for line in xrange(y+1,self.len_y-1):
+            for line in xrange(y+1,self.len_y):
                 self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
         except:
             pass
