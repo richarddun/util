@@ -540,11 +540,11 @@ class BaseWin(object):
         curses.panel.update_panels()
         curses.doupdate()
 
-    def annotate_x(self,win,y,num):
+    def annotate_y(self,win,y,num):
         self.graphwinsl[win].addstr(y,1,str(num))
         
 
-    def annotate_y(self,num):
+    def annotate_x(self,num):
         pass
 
     def clear_win(self,num):

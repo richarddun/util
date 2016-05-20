@@ -79,7 +79,8 @@ class Data_build(object):
             self.maxrate = curmax
             self.minrate = curmin
             self.spanrate = self.maxrate - self.minrate
-            self.maxmindict = {countname:{'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}}
+            self.maxmindict = OrderedDict({})
+            self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
         else:
             if self.maxrate < curmax:
                 self.maxrate = curmax
@@ -89,8 +90,7 @@ class Data_build(object):
                 self.hitmin = True
             if self.hitmax or self.hitmin:
                 self.spanrate = self.maxrate - self.minrate
-                self.maxmindict[countname] = {'maxrate':self.maxrate,
-                    'minrate':self.minrate,'spanrate':self.spanrate}
+                self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
                 self.hitmax,self.hitmin = False,False
 
     def prep_data(self,maxy,maxx):
@@ -111,7 +111,7 @@ class Data_build(object):
            relative x (to calculate 0/100)
         """
         if offset == None:
-            self.firstime = self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
+            self.firstime = 0 #self.maxtimlist.index(self.sdict[countname][devn]['time'][0])
         else: 
             self.firstime = offset
         

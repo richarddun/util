@@ -153,27 +153,37 @@ def main(win):
             #curses.endwin()
             #import pdb; pdb.set_trace()
             for index,counter in enumerate(cwin.countplotdict):
-                for dev in cwin.countplotdict[counter]:
+                for junk,dev in enumerate(cwin.countplotdict[counter]):
+                    #pdb.set_trace()
                     dataspool.fillmaxminvals(counter,dev)
                 for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
                     cwin.addname(dev, ylocindex, index)
                     valuesource = dataspool.read_full_rate_data(counter,dev)
                     for timenotch,val in valuesource:
                         cwin.spray_dots(val,timenotch,index,ylocindex)
-                for index, counter in enumerate(cwin.countplotdict):
-                    for i in xrange(5):
-                        increment = i
-                        if i == 0:
+            for index, counter in enumerate(cwin.countplotdict):
+                for i in xrange(4,-1,-1):
+                    increment = i
+                    if i == 0:
+                        if counter == 'cc_cpu_use':
+                            val = 0
+                        else:
                             val = dataspool.maxmindict[counter]['minrate']
-                            yoffset = max_Y-1
-                        elif i == 4:
+                        yoffset = max_Y-1
+                    elif i == 4:
+                        if counter == 'cc_cpu_use':
+                            val = 100 #hardwiring CPU values
+                        else:
                             val = dataspool.maxmindict[counter]['maxrate']
-                            yoffset = 1
+                        yoffset = 1
+                    else:
+                        if counter == 'cc_cpu_use':
+                            val = int(100 * (.25 * i))
                         else:
                             val = int(dataspool.maxmindict[counter]['spanrate'] * (.25 * i)) + dataspool.maxmindict[counter]['minrate']
-                            yoffset = int(max_Y/4) * i
-                        cwin.annotate_x(index,yoffset,val)
-                        cwin.one_refresh(index)
+                        yoffset = max_Y - (int(max_Y/4) * i)
+                    cwin.annotate_y(index,yoffset,val)
+            cwin.one_refresh(index)
         elif (keypress == ord('R')) and cwin.context == 3:
             cwin.hide_graphPanels()
             dataspool.resetcounters()
