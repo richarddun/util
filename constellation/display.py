@@ -500,13 +500,15 @@ class BaseWin(object):
         for index,entry in enumerate(self.countplotdict):
             self.graphwinsl.append(curses.newwin(self.len_y,self.len_x,0,0))
             self.graphpansd[entry] = curses.panel.new_panel(self.graphwinsl[index])
-            self.gwlegendsl.append(curses.newwin(8,self.len_x/4,2,(self.len_x/4*3)))
+            self.gwlegendsl.append(curses.newwin(len(self.countplotdict[entry])+4,self.len_x/4,2,(self.len_x/4*3)))
+            self.gwlegendsl[index].border('|','|','-','-','+','+','+','+')
             self.gplegendsd[entry] = curses.panel.new_panel(self.gwlegendsl[index])
 
-            self.gwlegendsl[index].addstr(1,1,entry)
+            self.gwlegendsl[index].addstr(1,1,entry,curses.A_BOLD)
         for index,entry in enumerate(self.countplotdict):
             if index == 0:
                 self.graphpansd[entry].top()
+                self.gplegendsd[entry].top()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
@@ -538,8 +540,9 @@ class BaseWin(object):
         curses.panel.update_panels()
         curses.doupdate()
 
-    def annotate_x(self,num):
-        pass
+    def annotate_x(self,win,y,num):
+        self.graphwinsl[win].addstr(y,1,str(num))
+        
 
     def annotate_y(self,num):
         pass

@@ -91,9 +91,9 @@ def main(win):
                         dataspool.drawtrack[curcounter][dev]['offset'] = 0
                     elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X < dataspool.drawtrack[curcounter][dev]['overallen']:
                         dataspool.drawtrack[curcounter][dev]['offset'] += max_X
-                    #elif dataspool.drawtrack[curcounter][dev]['offset'] + max_X > dataspool.drawtrack[curcounter][dev]['overallen']:
-                    #    dataspool.drawtrack[curcounter][dev]['offset'] = dataspool.drawtrack[curcounter][dev]['overallen'] - dataspool.drawtrack[curcounter][dev]['offset']
+                    
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
+                    
                     #running = False
                     #curses.nocbreak()
                     #stdscr.keypad(0)
@@ -160,6 +160,20 @@ def main(win):
                     valuesource = dataspool.read_full_rate_data(counter,dev)
                     for timenotch,val in valuesource:
                         cwin.spray_dots(val,timenotch,index,ylocindex)
+                for index, counter in enumerate(cwin.countplotdict):
+                    for i in xrange(5):
+                        increment = i
+                        if i == 0:
+                            val = dataspool.maxmindict[counter]['minrate']
+                            yoffset = max_Y-1
+                        elif i == 4:
+                            val = dataspool.maxmindict[counter]['maxrate']
+                            yoffset = 1
+                        else:
+                            val = int(dataspool.maxmindict[counter]['spanrate'] * (.25 * i)) + dataspool.maxmindict[counter]['minrate']
+                            yoffset = int(max_Y/4) * i
+                        cwin.annotate_x(index,yoffset,val)
+                        cwin.one_refresh(index)
         elif (keypress == ord('R')) and cwin.context == 3:
             cwin.hide_graphPanels()
             dataspool.resetcounters()
