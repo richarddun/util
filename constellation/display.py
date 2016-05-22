@@ -531,10 +531,10 @@ class BaseWin(object):
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
         try: 
-            self.graphwinsl[num].addch(y,x,'*',curses.color_pair(5+color))
+            self.graphwinsl[num].addch(y,x+7,'*',curses.color_pair(5+color))
         
             for line in xrange(y+1,self.len_y):
-                self.graphwinsl[num].addch(line,x,'|',curses.color_pair(5+color))
+                self.graphwinsl[num].addch(line,x+7,'|',curses.color_pair(5+color))
         except:
             pass
         curses.panel.update_panels()
@@ -542,13 +542,17 @@ class BaseWin(object):
 
     def annotate_y(self,win,y,num):
         self.graphwinsl[win].addstr(y,1,str(num))
-        
 
     def annotate_x(self,num):
         pass
 
-    def clear_win(self,num):
-        self.graphwinsl[self.panmvloc].clear()
+    def clear_graph(self,num):
+        for line in range(self.len_y+1):
+            try:
+                self.graphwinsl[num].move(line,8)#8 spaces for a max of 8 digits on x axis... for now
+                self.graphwinsl[num].clrtoeol()
+            except:
+                pass
         curses.panel.update_panels()
         curses.doupdate()
         self.graphwinsl[self.panmvloc].refresh()
@@ -590,6 +594,8 @@ class BaseWin(object):
 
 
     def one_refresh(self,num):
+        curses.panel.update_panels()
+        curses.doupdate()
         self.graphwinsl[num].refresh()
 
     def refresh(self):

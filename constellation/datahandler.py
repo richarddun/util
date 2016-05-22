@@ -82,16 +82,10 @@ class Data_build(object):
             self.maxmindict = OrderedDict({})
             self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
         else:
-            if self.maxrate < curmax:
-                self.maxrate = curmax
-                self.hitmax = True
-            if self.minrate > curmin:
-                self.minrate = curmin
-                self.hitmin = True
-            if self.hitmax or self.hitmin:
-                self.spanrate = self.maxrate - self.minrate
-                self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
-                self.hitmax,self.hitmin = False,False
+            self.maxrate = curmax
+            self.minrate = curmin
+            self.spanrate = self.maxrate - self.minrate
+            self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
 
     def prep_data(self,maxy,maxx):
         """
@@ -120,8 +114,11 @@ class Data_build(object):
             if countname == 'cc_cpu_use':
                 transient_pc = valuev/100     
             else:
-                refvalloc = int(round((valuev/self.spanrate)*100))
-                transient_pc = float(refvalloc)/100
+                if self.maxmindict[countname]['spanrate'] > 0:
+                    refvalloc = int(round((valuev/self.maxmindict[countname]['spanrate'])*100))
+                    transient_pc = float(refvalloc)/100
+                else:
+                    transient_pc = 0
             ypcent = self.yplane - int(round(self.yplane*transient_pc))
             if ypcent > 49:
                 ypcent = 49
