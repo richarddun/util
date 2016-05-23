@@ -531,14 +531,14 @@ class BaseWin(object):
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
         try: 
-            self.graphwinsl[num].addch(y,x+7,'*',curses.color_pair(5+color))
+            self.graphwinsl[num].addch(y,x+9,'*',curses.color_pair(5+color))
         
             for line in xrange(y+1,self.len_y):
-                self.graphwinsl[num].addch(line,x+7,'|',curses.color_pair(5+color))
+                self.graphwinsl[num].addch(line,x+9,'|',curses.color_pair(5+color))
         except:
             pass
-        curses.panel.update_panels()
-        curses.doupdate()
+        #curses.panel.update_panels()
+        #curses.doupdate()
 
     def annotate_y(self,win,y,num):
         self.graphwinsl[win].addstr(y,1,str(num))

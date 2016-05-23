@@ -183,7 +183,7 @@ def main(win):
                             yoffset = max_Y - 1
                         elif i == 4:
                             val = dataspool.maxmindict[counter]['maxrate']
-                            yoffset = 1
+                            yoffset = 0
                         else:
                             val = int(dataspool.maxmindict[counter]['spanrate'] * (.25 * i)) + dataspool.maxmindict[counter]['minrate']
                             yoffset = max_Y - (int(max_Y/4) * i)
