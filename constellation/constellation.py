@@ -1,5 +1,11 @@
 #!/usr/bin/env python2
-"""Main program control and logic"""
+"""Main program control and logic
+
+Richard Dunne, 2016
+
+Graph rate values from a given newnslog.
+
+"""
 
 import argparse
 import os
@@ -105,7 +111,7 @@ def main(win):
                         cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
                 cwin.one_refresh(cwin.panmvloc)
 
-        elif (keypress == ord('\t') or keypress == 9) and cwin.context == 3:
+        elif (keypress == ord('\t') or keypress == 9 or keypress == curses.KEY_PPAGE) and cwin.context == 3:
                 cwin.graphshow(1)
         elif (keypress == curses.KEY_BACKSPACE) or (keypress == curses.KEY_LEFT):
             if cwin.context == 2:
@@ -128,7 +134,7 @@ def main(win):
                         cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
                 cwin.one_refresh(cwin.panmvloc)
         
-        elif keypress == curses.KEY_BTAB and cwin.context == 3:
+        elif (keypress == curses.KEY_BTAB or keypress == curses.KEY_NPAGE) and cwin.context == 3:
                 cwin.graphshow(-1)
         elif (keypress == ord(' ')) and cwin.context == 2:
             cwin.dev_toggle()
