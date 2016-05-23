@@ -84,6 +84,12 @@ class Data_build(object):
         else:
             self.maxrate = curmax
             self.minrate = curmin
+            if countname in self.maxmindict: #if we see a repeat counter (different dev)
+                if self.maxmindict[countname]['maxrate'] > curmax:
+                    self.maxrate = self.maxmindict[countname]['maxrate']
+                if self.maxmindict[countname]['minrate'] < curmin:
+                    self.minrate = self.maxmindict[countname]['maxrate']
+                    
             self.spanrate = self.maxrate - self.minrate
             self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
 
