@@ -11,8 +11,8 @@ Shift + Q - (Q)uit
 
 Graph Navigation / Use Help
 
-Tab / Shift + Tab - shuffle between available devices / graphs
+Page UP / Page Down - shuffle between available devices / graphs
 Shift + R  - (R)eturn to counter select menu
 Shift and H - Show or hide this (H)elp message
+Shift and L - Hide or show the graph (L)egend
 Left/Right arrow - Backward/Forward through timeline
-
