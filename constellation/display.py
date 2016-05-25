@@ -6,6 +6,7 @@ from curses import panel
 from collections import OrderedDict
 import time
 import os 
+import pdb
 
 class BaseWin(object):
     """
@@ -28,6 +29,9 @@ class BaseWin(object):
         curses.init_pair(11, curses.COLOR_CYAN, curses.COLOR_BLACK)
         self.starty, self.startx = 1,1
         self.len_y,self.len_x = h,w
+        self.lborder,self.bborder = 9,(self.len_y - 4)#hardcoding for now, to segment
+        #the space where the graph is drawn from (l)eft and (b)ottom
+        #and allow space for x/y annotation.  
         self.win = curses.newwin(self.len_y,self.len_x,self.starty,self.startx)
         self.infob_h = int(round(self.len_y * .15))
         self.infob_offset = self.len_y - self.infob_h 
@@ -56,16 +60,7 @@ class BaseWin(object):
         self.gwin.border('|','|','-','-','+','+','+','+')
         self.gpan = curses.panel.new_panel(self.gwin)
         self.gprod = '**NSCONSTELLATION**'
- #       self.goption = ['-Isolated-','-Comparison-']
- #       self.gtext = ['View counters for each device in an isolated window','View selected counters simultaneously in one window']
         self.gwin.addstr(1, self.gwin_xlen/2 - (len(self.gprod)/2),self.gprod,curses.color_pair(3))
-#        self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0], curses.A_REVERSE)
-#        self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
-#        self.gwin.addstr(7, 4,self.gtext[0])
-#        self.isoloc = [3,self.gwin_xlen/4]
-#        self.conloc = [3,((self.gwin_xlen/4)*3)]
-#        self.incurselect = 0
-#below the stripped down version (for now)
         self.gwin.addstr(3, self.gwin_xlen/5, 'Rate count visualiser')
         self.gwin.addstr(5, self.gwin_xlen/5, 'Shift and q to quit')
         self.gwin.addstr(6, self.gwin_xlen/5, 'Shift and h for  contextual help')
@@ -75,36 +70,19 @@ class BaseWin(object):
         curses.doupdate()
         self.win.refresh()
 
-#    def Intro_option_move(self):
-#        if self.incurselect == 0:
-#            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0])
-#            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1],curses.A_REVERSE)
-#            self.gwin.addstr(5,1,' '*len(self.gtext[0]))
-#            self.gwin.addstr(7,4,self.gtext[1])
-#            self.incurselect = 1
-#        elif self.incurselect == 1:
-#            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.A_REVERSE)
-#            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1])
-#            self.gwin.addstr(5,1,' '*len(self.gtext[1]))
-#            self.gwin.addstr(7,4,self.gtext[0])
-#            self.incurselect = 0
-#        curses.panel.update_panels()
-#        curses.doupdate()
-#        self.win.refresh()
-               
     def Intro_option_select(self):
-#        if self.incurselect == 0:
-#            self.gwin.addstr(3, self.gwin_xlen/4, self.goption[0],curses.color_pair(4))
-#        else:
-#            self.gwin.addstr(3, (self.gwin_xlen/4)*3, self.goption[1], curses.color_pair(4))
-#        curses.panel.update_panels()
-#        curses.doupdate()
-#        self.win.refresh()
-#        time.sleep(.5)
+        """
+        Just a switch to dismiss the initial splash screen
+        """
         self.introdone = True
         self.gpan.hide()
 
     def Selection_Warn_Draw(self):
+        """
+        Method to warn on selecting more than 8 unique counters.
+        (Method is not currently called in the program, this may change
+        in future)
+        """
         self.g1text = 'Maximum selection is 8 unique counters.  To continue '
         self.g2text = 'de-select a previous counter'
         self.extext = 'Press Space to continue'
@@ -122,6 +100,11 @@ class BaseWin(object):
         self.win.refresh()
 
     def Selection_Warn_Dismiss(self):
+        """
+        Just a switch to dismiss the warning screen
+        (Method is not currently called in this program, this may
+        change in future)
+        """
         self.warning = False
         self.warnpan.hide()
         curses.panel.update_panels()
@@ -129,6 +112,10 @@ class BaseWin(object):
         self.win.refresh()
 
     def Help_Draw(self):
+        """
+        Read a file called 'help.txt' and copy contents to a 
+        window, centre screen.
+        """
         self.helptextlist = []
         self.helpstring = ' '
         self.toplen = 0
@@ -153,6 +140,9 @@ class BaseWin(object):
         self.win.refresh()
 
     def Help_Dismiss(self):
+        """
+        Just a switch to dismiss the Help screen.
+        """
         self.showing_help = False
         self.helppan.hide()
         curses.panel.update_panels()
@@ -470,6 +460,9 @@ class BaseWin(object):
         self.win.refresh()
 
     def on_toggled(self):
+        """
+        Test if the location pointer is on a dev that has already been 'toggled' (on/off)
+        """
         if (self.mlocationref[self.mlocptr],self.curdevlist[self.s_curloc]) in self.toggledev:
             return True
         else:
@@ -514,6 +507,9 @@ class BaseWin(object):
         self.win.refresh()
     
     def hide_graphPanels(self):
+        """
+        Method to push the graph display windows to the background.
+        """
         for panel in self.graphpansd:
             self.graphpansd[panel].hide()
         for panel in self.gplegendsd:
@@ -523,6 +519,13 @@ class BaseWin(object):
         self.win.refresh()
 
     def addname(self,device,ystrindex,windex):
+        """
+        Method to write the devnames in different colours in a 
+        small window, for informational purposes.
+        Accepts devicename (string the write), a y location
+        and an index, which is used to index through available
+        windows
+        """
         self.gwlegendsl[windex].addstr(ystrindex+3,1,device,curses.color_pair(5+ystrindex))
 
     def spray_dots(self,y,x,num,color):
@@ -530,10 +533,12 @@ class BaseWin(object):
         Method to draw a '*' at a given y location, at 'num' window.
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
+        if y > self.bborder:
+            y = self.bborder#segmenting space along the bottom for y annotation
         try: 
-            self.graphwinsl[num].addch(y,x+9,'*',curses.color_pair(5+color))
+            self.graphwinsl[num].addch(y,x+self.lborder,'*',curses.color_pair(5+color))
         
-            for line in xrange(y+1,self.len_y):
+            for line in xrange(y+1,self.bborder):
                 self.graphwinsl[num].addch(line,x+9,'|',curses.color_pair(5+color))
         except:
             pass
@@ -541,15 +546,24 @@ class BaseWin(object):
         #curses.doupdate()
 
     def annotate_y(self,win,y,num):
+        """
+        Write Y axis value at y location.  Accepts win (window index),
+        y (y coordinate), num (the value to stringize and write)
+        """
         self.graphwinsl[win].addstr(y,1,str(num))
 
     def annotate_x(self,num):
         pass
 
     def clear_graph(self,num):
-        for line in range(self.len_y+1):
+        """
+        Method to clear the currently 'sprayed' values on the graph window.
+        uses .move to move cursor to self.lborder (the top left), and .clrtoeol to blank 
+        all the lines until self.bborder (bottom border).
+        """
+        for line in range(0,self.bborder):
             try:
-                self.graphwinsl[num].move(line,8)#8 spaces for a max of 8 digits on x axis... for now
+                self.graphwinsl[num].move(line,self.lborder)#
                 self.graphwinsl[num].clrtoeol()
             except:
                 pass
@@ -558,7 +572,11 @@ class BaseWin(object):
         self.graphwinsl[self.panmvloc].refresh()
 
     def toggle_legend(self):
-        if hasattr(self,'legendshow'):
+        """
+        Method to hide the current 'legend' (small window in 
+        top left containing devnames)
+        """
+        if hasattr(self,'legendshow'):#using hasattr as an on/off switch
             for pan in self.gplegendsd:
                 self.gplegendsd[pan].top()
             for index,pan in enumerate(self.gplegendsd):
@@ -568,14 +586,16 @@ class BaseWin(object):
         else:
             self.legendshow = True
             for index,pan in enumerate(self.gplegendsd):
-                #if index == self.panmvloc:
-                #    pass
                 self.gplegendsd[pan].hide()
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()
 
     def graphshow(self,move):
+        """
+        Method to show the next / last graph panel.  Accepts an integer 
+        (move) which should be 1 or -1 (right, left respectively)
+        """
         if len(self.graphpansd.keys()) == 1:
             pass
         else:
@@ -594,11 +614,17 @@ class BaseWin(object):
 
 
     def one_refresh(self,num):
+        """
+        Convenience method to refresh just one specific panel
+        """
         curses.panel.update_panels()
         curses.doupdate()
         self.graphwinsl[num].refresh()
 
     def refresh(self):
+        """
+        Convenience method to refresh stsdscr
+        """
         curses.panel.update_panels()
         curses.doupdate()
         self.win.refresh()

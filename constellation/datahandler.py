@@ -3,7 +3,6 @@
 
 from __future__ import division
 from collections import OrderedDict
-import shelve
 import os
 import subprocess
 import time
@@ -11,7 +10,7 @@ import re
 import pdb
 
 class Data_build(object):
-    """Class to interact with python shelve to build/read/write/destroy shelves 
+    """Class to interact with python dict to build/read/write/destroy data 
        based on need"""
     def __init__(self,maxrets=0):
         self.sdict = OrderedDict({})
@@ -21,13 +20,16 @@ class Data_build(object):
         self.drawtrack = OrderedDict({})
 
     def add_data(self,buf):
-        """Add data passed from list containing specific values to a shelve record
+        """Add data passed from list containing specific values to a dict record
            Values expected : 0 - Value (int),1 - Name (str), 2 - Dev_name (str), 
            3 - Timestamp (int)
            Also note max/min val/time while reading data
         """
         tempval = []
         temptim = []
+        #key data item, sys_cur_duration_sincestart is mostly guaranteed
+        #to overlap all values (with regards to timeline)  
+        #it acts as a baseline to draw the x axis
         if buf[1] == 'sys_cur_duration_sincestart':
             if 'timestamps' in self.sdict.keys():
                 self.sdict['timestamps'].append(buf[2])
@@ -58,21 +60,30 @@ class Data_build(object):
                 self.sdict[self.counter_name][self.devname]['time'].append(int(self.timestamp))
                 self.drawtrack[self.counter_name][self.devname]['overallen']+=1
         else:
-            raise ValueError('Attempted to add more or less than 4 items as shelve record')
+            raise ValueError('Attempted to add more or less than 4 items as dict record')
             return 2
   
     def get_devs(self,countname):
-        """Read shelve keys, return 'Devname' ; Devname is a string identifying an entity
-           to track, and update in the shelve instance"""
+        """Read dict keys, return 'Devname' ; Devname is a string identifying an entity
+           to track, and update in the dict instance"""
         return self.sdict[countname].keys()
 
     def resetcounters(self):
+        """
+        Convenience method to remove attributes
+        """
         delattr(self,'maxrate')
         delattr(self,'minrate')
         delattr(self,'spanrate')
         delattr(self,'maxmindict')
 
     def fillmaxminvals(self,countname,dev):
+        """
+        Method to compare devs in a given counter and determine
+        the max value, and min value, to ensure that values are 
+        plotted in an uniform way.  Accepts counter, device name
+        and adds to a dict after a comparison operation.
+        """
         curmax = max(self.sdict[countname][dev]['value'])
         curmin = min(self.sdict[countname][dev]['value'])
         if not hasattr(self, 'maxrate'):
@@ -88,7 +99,7 @@ class Data_build(object):
                 if self.maxmindict[countname]['maxrate'] > curmax:
                     self.maxrate = self.maxmindict[countname]['maxrate']
                 if self.maxmindict[countname]['minrate'] < curmin:
-                    self.minrate = self.maxmindict[countname]['maxrate']
+                    self.minrate = self.maxmindict[countname]['minrate']
                     
             self.spanrate = self.maxrate - self.minrate
             self.maxmindict[countname] = {'maxrate':self.maxrate,'minrate':self.minrate,'spanrate':self.spanrate}
@@ -126,13 +137,13 @@ class Data_build(object):
                 else:
                     transient_pc = 0
             ypcent = self.yplane - int(round(self.yplane*transient_pc))
-            if ypcent > 49:
-                ypcent = 49
+            if ypcent >= self.yplane:
+                ypcent = self.yplane - 1#curses draw locations are zero-indexed, modifying it here
             yield reslice,ypcent
 
     def topclist(self):
         """Reads and returns list of main counters from 
-           shelve"""
+           dict"""
         templist = []
         for x in self.sdict:
             if x == 'timestamps':
@@ -142,7 +153,7 @@ class Data_build(object):
         return templist
 
     def shallow_ret(self):
-        """Returns top and middle level data from shelve
+        """Returns top and middle level data from dict
            i.e. the main counter entry, and the dev 
            entries.  For use in display function"""
         shallow_dict = {}
@@ -162,21 +173,29 @@ class Nstools(object):
                        'nic_tot_rx_bytes',
                        'nic_tot_rx_mbits',
                        'nic_tot_tx_mbits',
+                       'nic_tot_tx_packets',
+                       'nic_tot_rx_packets',
+                       'nic_tot_broadcast_pkts',
                        'vlan_tot_tx_bytes',
-                       'vlan_tot_rx_bytes']
+                       'vlan_tot_rx_bytes',
+                       'nic_tot_rx_lacpdus',
+                       'nic_err_dropped_pkts',
+                       'nic_err_rl_rate_pkt_drops',
+                       'nic_tot_bdg_mac_moved'
+                       ]
+        #unique list for these, need special handling
+        #because we look for 'totalcount' and not rate p/sec
         self.totalclist = ['cc_cpu_use']
         #'mem_cur_allocsize'-implement this once I can figure out 
         #how to graph it properly
 
         self.metronome = ' -f sys_cur_duration_sincestart '
-                #unique list for these, need special handling
-                #because we look for 'totalcount' and not rate p/sec
         self.nsver = nsver
         templist = []
         for count in self.counts:
             templist.append('-f')
             templist.append(count)
-        forcestring = ' '.join(templist)
+        forcestring = ' '.join(templist)#get a string from the countlist
         #initialise command string for subprocess
         self.command_string = 'nsconmsg' + self.nsver + ' -K ' + self.nslog + \
             ' -d current ' + forcestring + self.metronome + ' -s disptime=1' 
@@ -188,7 +207,6 @@ class Nstools(object):
         #3 = delta, 4 = rate/sec, 5 = symbol-name 6 = &device-no, 7 = time
         totalc,ratepersec,symname,devno = 2,4,5,6 
         new_list = []
-        #pdb.set_trace()
         if len(string.split()) == 11:
             new_list = string.split()[0:6]
             timelist = string.split()[6:11]#timestamp is in 4 chunks
