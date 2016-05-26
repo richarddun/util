@@ -141,6 +141,17 @@ class Data_build(object):
                 ypcent = self.yplane - 1#curses draw locations are zero-indexed, modifying it here
             yield reslice,ypcent
 
+    def find_time(self,index,short=False):
+        """
+        Given an index, grab an epoch time number, convert to a string, return it
+        """
+        timestring = self.sdict['timestamps'][index]
+        if short == False:
+            outtime = time.strftime('%d/%b/%y %H:%M:%S', time.localtime(timestring))
+        else:
+            outtime = time.strftime('%H:%M:%S', time.localtime(timestring))
+        return outtime
+
     def topclist(self):
         """Reads and returns list of main counters from 
            dict"""

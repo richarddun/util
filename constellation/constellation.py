@@ -143,9 +143,9 @@ def main(win):
                     
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     refillsource = dataspool.read_full_rate_data(curcounter,dev,curoffset)
-                    
                     for timenotch,val in refillsource:
                         cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
+                        
                 cwin.one_refresh(cwin.panmvloc)
         
         elif (keypress == curses.KEY_BTAB or keypress == curses.KEY_NPAGE) and cwin.context == 3:
@@ -172,18 +172,27 @@ def main(win):
                 for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
                     cwin.addname(dev, ylocindex, index)
                     valuesource = dataspool.read_full_rate_data(counter,dev)
+                    timecount = cwin.lborder
                     for timenotch,val in valuesource:
                         #curses.nocbreak()
                         #stdscr.keypad(0)
                         #curses.echo()
                         #curses.endwin()
                         #import pdb; pdb.set_trace()
-
                         cwin.spray_dots(val,timenotch,index,ylocindex)
+                        if timecount == cwin.lborder: #first occurrence, write first timestamp
+                            cwin.annotate_x(index,dataspool.find_time(timecount),timecount)
+
+                        elif timecount % 30 == 0:
+                     
+                            cwin.annotate_x(index,dataspool.find_time(timecount,short=True),timecount)
+                        timecount += 1
 
             cwin.one_refresh(cwin.panmvloc)
             
             #now annotate y graph values on the left ->
+            #TODO - truncate long values (anything over 4 characters) 
+            #       to save screen space
             for index, counter in enumerate(cwin.countplotdict):
                 for i in xrange(4,-1,-1):
                     if counter == 'cc_cpu_use': #hardwiring CPU values
@@ -208,6 +217,7 @@ def main(win):
                             yoffset = cwin.bborder - (int(cwin.bborder/4) * i)
 
                     cwin.annotate_y(index,yoffset,val)
+
                     cwin.one_refresh(index)
 
         elif (keypress == ord('R')) and cwin.context == 3:

@@ -530,7 +530,9 @@ class BaseWin(object):
 
     def spray_dots(self,y,x,num,color):
         """
-        Method to draw a '*' at a given y location, at 'num' window.
+        Method to draw a '*' at a given y,x location, at 'num' window with
+        'color' color value (instantiated earlier).
+        Method then draws a '|' from the '*' until bborder
         """
         self.graphchars = ['*','#','@','&','^','"','!','~']
         if y > self.bborder:
@@ -552,8 +554,16 @@ class BaseWin(object):
         """
         self.graphwinsl[win].addstr(y,1,str(num))
 
-    def annotate_x(self,num):
-        pass
+    def annotate_x(self,win,timestring,xref):
+        """
+        Write X axis value at xref location.  Accepts win (window index),
+        timestamp (timestring), x location (xref).  Always draws relative to 
+        bborder
+        """
+        try:
+            self.graphwinsl[win].addstr(self.bborder+3,xref,timestring)
+        except:
+            pass
 
     def clear_graph(self,num):
         """
