@@ -44,6 +44,13 @@ def main(win):
     y,x=0,1
     dataspool = Data_build()
     ns_source = Nstools(logfile,ver)
+    #running = False
+    #curses.nocbreak()
+    #stdscr.keypad(0)
+    #curses.echo()
+    #curses.endwin()
+    #import pdb; pdb.set_trace()
+
     log_generator = ns_source.nratechecker()
     
     for index,data in enumerate(log_generator):
@@ -209,7 +216,7 @@ def main(win):
             for index, counter in enumerate(cwin.countplotdict):
                 
                 for i in xrange(4,-1,-1):
-                    if counter == 'cc_cpu_use': #hardwiring CPU values
+                    if counter == ('cc_cpu_use' or 'cpu_use' or 'master_cpu_use' or 'mgmt_cpu_use'): #hardwiring CPU values
                         if i == 0:
                             val = 0
                             yoffset = cwin.bborder-1#always on bottom

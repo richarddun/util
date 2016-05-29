@@ -30,6 +30,7 @@ class Data_build(object):
         #key data item, sys_cur_duration_sincestart is mostly guaranteed
         #to overlap all values (with regards to timeline)  
         #it acts as a baseline to draw the x axis
+        #TODO - mgmt_cpu_use is on a scale of 0-1000, need to fix the display for this one
         if buf[1] == 'sys_cur_duration_sincestart':
             if 'timestamps' in self.sdict.keys():
                 self.sdict['timestamps'].append(buf[2])
@@ -128,7 +129,7 @@ class Data_build(object):
         
         for reslice in xrange(self.firstime,self.drawtrack[countname][devn]['overallen']):
             valuev = self.sdict[countname][devn]['value'][reslice]
-            if countname == 'cc_cpu_use':
+            if countname == ('cc_cpu_use' or 'cpu_use' or 'master_cpu_use' or 'mgmt_cpu_use'):
                 transient_pc = valuev/100     
             else:
                 if self.maxmindict[countname]['spanrate'] > 0:
@@ -184,6 +185,7 @@ class Data_build(object):
                 shallow_dict[item] = self.sdict[item].keys()#need to go deeper
         return shallow_dict
 
+
 class Nstools(object):
     """NS Tools class instance.  Used to parse and manipulate
        NetScaler newnslog counter output when run with the 
@@ -195,15 +197,13 @@ class Nstools(object):
                        'nic_tot_rx_bytes',
                        'nic_tot_rx_mbits',
                        'nic_tot_tx_mbits',
-                       'nic_tot_tx_packets',
-                       'nic_tot_rx_packets',
-                       'nic_tot_broadcast_pkts',
                        'vlan_tot_tx_bytes',
                        'vlan_tot_rx_bytes',
-                       'nic_tot_rx_lacpdus',
-                       'nic_err_dropped_pkts',
                        'nic_err_rl_rate_pkt_drops',
-                       'nic_tot_bdg_mac_moved'
+                       'arp_tot_requests',
+                       'cpu_use',
+                       'master_cpu_use',
+                       'mgmt_cpu_use'
                        ]
         #unique list for these, need special handling
         #because we look for 'totalcount' and not rate p/sec
@@ -235,7 +235,10 @@ class Nstools(object):
             timestring = ' '.join(timelist[1:])#don't care about name of day
 	    pattern = '%b %d %H:%M:%S %Y'
             new_list.append(int(time.mktime(time.strptime(timestring,pattern))))
-            return new_list[4:]
+            tru_list = new_list[4:]
+            if 'sys_cur_duration_sincestart' not in tru_list:
+                tru_list.insert(2,'Rate')
+            return tru_list
         elif len(string.split()) == 12:
             #some special handling for differing counters
             #because some counters are in rate per second
