@@ -108,7 +108,7 @@ def main(win):
                         dataspool.drawtrack[curcounter][dev]['offset'] += max_X #move one screen len in offset
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     
-                    refillsource = dataspool.read_full_rate_data(curcounter,dev,offset=curoffset)
+                    refillsource = dataspool.read_full_rate_data(curcounter,dev,curoffset)
                     
                     timecount = cwin.lborder
                     for timenotch,val in refillsource:
@@ -197,7 +197,7 @@ def main(win):
                             cwin.annotate_x_time(index,dataspool.find_time(timenotch),timecount)
                         elif timecount % 30 == 0:
                      
-                            cwin.annotate_x_time(index,dataspool.find_time(timecount),timecount)
+                            cwin.annotate_x_time(index,dataspool.find_time(timenotch),timecount)
                         timecount += 1
 
             cwin.one_refresh(cwin.panmvloc)

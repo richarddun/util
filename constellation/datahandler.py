@@ -147,7 +147,16 @@ class Data_build(object):
         type is an option to return a different representation of the time.  Accepts
         'general' which returns e.g. Thu, 28 Jun 2016
         """
-        timestring = self.sdict['timestamps'][index]
+        try:
+            timestring = self.sdict['timestamps'][index]
+        except:
+            try:
+                timestring = self.sdict['timestamps'][index+1]
+            except:
+                try:
+                    timestring = self.sdict['timestamps'][index-1]
+                except:
+                    raise IndexError
         if type == None:
             outtime = time.strftime('%H:%M:%S', time.localtime(timestring))
         elif type == 'general':
