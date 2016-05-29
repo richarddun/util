@@ -141,15 +141,17 @@ class Data_build(object):
                 ypcent = self.yplane - 1#curses draw locations are zero-indexed, modifying it here
             yield reslice,ypcent
 
-    def find_time(self,index,short=False):
+    def find_time(self,index,type=None):
         """
-        Given an index, grab an epoch time number, convert to a string, return it
+        Given an index, grab an epoch time number, convert to a string, return it.
+        type is an option to return a different representation of the time.  Accepts
+        'general' which returns e.g. Thu, 28 Jun 2016
         """
         timestring = self.sdict['timestamps'][index]
-        if short == False:
-            outtime = time.strftime('%d/%b/%y %H:%M:%S', time.localtime(timestring))
-        else:
+        if type == None:
             outtime = time.strftime('%H:%M:%S', time.localtime(timestring))
+        elif type == 'general':
+            outtime = time.strftime('%a, %d %b %Y', time.localtime(timestring))
         return outtime
 
     def topclist(self):

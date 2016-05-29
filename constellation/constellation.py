@@ -108,16 +108,19 @@ def main(win):
                         dataspool.drawtrack[curcounter][dev]['offset'] += max_X #move one screen len in offset
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     
-                    #running = False
-                    #curses.nocbreak()
-                    #stdscr.keypad(0)
-                    #curses.echo()
-                    #curses.endwin()
-                    #import pdb; pdb.set_trace()
                     refillsource = dataspool.read_full_rate_data(curcounter,dev,offset=curoffset)
                     
+                    timecount = cwin.lborder
                     for timenotch,val in refillsource:
                         cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
+                        if timecount == cwin.lborder: #first occurrence, write first timestamp
+                            cwin.annotate_x_day(cwin.panmvloc,dataspool.find_time(timenotch,type='general'),timecount)
+                            cwin.annotate_x_time(cwin.panmvloc,dataspool.find_time(timenotch),timecount)
+                        elif timecount % 30 == 0:
+                     
+                            cwin.annotate_x_time(cwin.panmvloc,dataspool.find_time(timenotch),timecount)
+                        timecount += 1
+
                 cwin.one_refresh(cwin.panmvloc)
 
         elif (keypress == ord('\t') or keypress == 9 or keypress == curses.KEY_PPAGE) and cwin.context == 3:
@@ -140,16 +143,23 @@ def main(win):
                         dataspool.drawtrack[curcounter][dev]['offset'] -= max_X
                     else:
                         dataspool.drawtrack[curcounter][dev]['offset'] = 0
-                    
+                    timecount = cwin.lborder #indexing positions on x axis from lborder, that's all
                     curoffset = dataspool.drawtrack[curcounter][dev]['offset']
                     refillsource = dataspool.read_full_rate_data(curcounter,dev,curoffset)
                     for timenotch,val in refillsource:
                         cwin.spray_dots(val,timenotch-curoffset,cwin.panmvloc,i)
-                        
+                        if timecount == cwin.lborder: #first occurrence, write first timestamp
+                            cwin.annotate_x_day(cwin.panmvloc,dataspool.find_time(timenotch,type='general'),timecount)
+                            cwin.annotate_x_time(cwin.panmvloc,dataspool.find_time(timenotch),timecount)
+                        elif timecount % 30 == 0:
+                     
+                            cwin.annotate_x_time(cwin.panmvloc,dataspool.find_time(timenotch),timecount)
+                        timecount += 1
+                       
                 cwin.one_refresh(cwin.panmvloc)
         
         elif (keypress == curses.KEY_BTAB or keypress == curses.KEY_NPAGE) and cwin.context == 3:
-                cwin.graphshow(-1)
+            cwin.graphshow(-1)
 
         elif (keypress == ord(' ')) and cwin.context == 2:
             cwin.dev_toggle()
@@ -161,39 +171,43 @@ def main(win):
                 helppress = stdscr.getch()
                 if helppress == ord('H'):
                     cwin.Help_Dismiss()
-
+        
+        #Fire up the graph windows ->
         elif ((keypress == ord('G')) or (keypress == ord('g'))) and cwin.context == 2:
             cwin.context = 3
             curoffset = 0
 	    cwin.generate_graphPanels()
             for index,counter in enumerate(cwin.countplotdict):
+                
                 for dev in cwin.countplotdict[counter]:
                     dataspool.fillmaxminvals(counter,dev)
+                
                 for ylocindex, dev in enumerate(cwin.countplotdict[counter]):
                     cwin.addname(dev, ylocindex, index)
                     valuesource = dataspool.read_full_rate_data(counter,dev)
                     timecount = cwin.lborder
+                    
                     for timenotch,val in valuesource:
-                        #curses.nocbreak()
-                        #stdscr.keypad(0)
-                        #curses.echo()
-                        #curses.endwin()
-                        #import pdb; pdb.set_trace()
                         cwin.spray_dots(val,timenotch,index,ylocindex)
+                        
+                        #Annotate x graph values for the first time while we're iterating through dev values ->
+                        
                         if timecount == cwin.lborder: #first occurrence, write first timestamp
-                            cwin.annotate_x(index,dataspool.find_time(timecount),timecount)
-
+                            cwin.annotate_x_day(index,dataspool.find_time(timenotch,type='general'),timecount)
+                            cwin.annotate_x_time(index,dataspool.find_time(timenotch),timecount)
                         elif timecount % 30 == 0:
                      
-                            cwin.annotate_x(index,dataspool.find_time(timecount,short=True),timecount)
+                            cwin.annotate_x_time(index,dataspool.find_time(timecount),timecount)
                         timecount += 1
 
             cwin.one_refresh(cwin.panmvloc)
             
             #now annotate y graph values on the left ->
+
             #TODO - truncate long values (anything over 4 characters) 
             #       to save screen space
             for index, counter in enumerate(cwin.countplotdict):
+                
                 for i in xrange(4,-1,-1):
                     if counter == 'cc_cpu_use': #hardwiring CPU values
                         if i == 0:
@@ -235,4 +249,13 @@ def main(win):
 
 if __name__=='__main__':
     check_args()
+
+
+
+#running = False
+#curses.nocbreak()
+#stdscr.keypad(0)
+#curses.echo()
+#curses.endwin()
+#import pdb; pdb.set_trace()
 

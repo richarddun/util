@@ -29,7 +29,7 @@ class BaseWin(object):
         curses.init_pair(11, curses.COLOR_CYAN, curses.COLOR_BLACK)
         self.starty, self.startx = 1,1
         self.len_y,self.len_x = h,w
-        self.lborder,self.bborder = 9,(self.len_y - 4)#hardcoding for now, to segment
+        self.lborder,self.bborder = 9,(self.len_y - 3)#hardcoding for now, to segment
         #the space where the graph is drawn from (l)eft and (b)ottom
         #and allow space for x/y annotation.  
         self.win = curses.newwin(self.len_y,self.len_x,self.starty,self.startx)
@@ -554,14 +554,25 @@ class BaseWin(object):
         """
         self.graphwinsl[win].addstr(y,1,str(num))
 
-    def annotate_x(self,win,timestring,xref):
+    def annotate_x_time(self,win,timestring,xref):
         """
         Write X axis value at xref location.  Accepts win (window index),
         timestamp (timestring), x location (xref).  Always draws relative to 
-        bborder
+        bborder.  
         """
         try:
-            self.graphwinsl[win].addstr(self.bborder+3,xref,timestring)
+            self.graphwinsl[win].addstr(self.bborder,xref,'|')
+            self.graphwinsl[win].addstr(self.bborder+1,xref,timestring)
+        except:
+            pass
+    
+    def annotate_x_day(self,win,timestring,xref):
+        """
+        Just write the day at the start of x axis, lower than the 
+        positions where annotate_x_time writes
+        """
+        try:
+            self.graphwinsl[win].addstr(self.bborder+2,xref,timestring)
         except:
             pass
 
@@ -571,7 +582,7 @@ class BaseWin(object):
         uses .move to move cursor to self.lborder (the top left), and .clrtoeol to blank 
         all the lines until self.bborder (bottom border).
         """
-        for line in range(0,self.bborder):
+        for line in range(0,self.len_y):
             try:
                 self.graphwinsl[num].move(line,self.lborder)#
                 self.graphwinsl[num].clrtoeol()
