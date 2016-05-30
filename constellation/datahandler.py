@@ -197,6 +197,7 @@ class Nstools(object):
         #customise the counters visible
         ###
         self.counts = ['cc_cpu_use',
+                       'mgmt_cpu_use'
                        'nic_tot_tx_bytes',
                        'nic_tot_rx_bytes',
                        'nic_tot_rx_mbits',
@@ -204,14 +205,11 @@ class Nstools(object):
                        'vlan_tot_tx_bytes',
                        'vlan_tot_rx_bytes',
                        'nic_err_rl_rate_pkt_drops',
-                       'arp_tot_requests',
-                       'cpu_use',
-                       'master_cpu_use',
-                       'mgmt_cpu_use'
+                       'mem_tot_freesize'
                        ]
         #unique list for these, need special handling
         #because we look for 'totalcount' and not rate p/sec
-        self.totalclist = ['cc_cpu_use','master_cpu_use','mgmt_cpu_use','cpu_use']
+        self.totalclist = ['mem_tot_freesize','cc_cpu_use','master_cpu_use','mgmt_cpu_use','cpu_use']
         #'mem_cur_allocsize'-implement this once I can figure out 
         #how to graph it properly
 
