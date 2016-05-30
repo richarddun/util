@@ -33,11 +33,11 @@ class Data_build(object):
         #TODO - mgmt_cpu_use is on a scale of 0-1000, need to fix the display for this one
         if buf[1] == 'sys_cur_duration_sincestart':
             if 'timestamps' in self.sdict.keys():
-                self.sdict['timestamps'].append(buf[2])
+                self.sdict['timestamps'].append(buf[3])
             else:
                 self.sdict['timestamps'] = []
                 
-                self.sdict['timestamps'].append(buf[2])
+                self.sdict['timestamps'].append(buf[3])
         elif len(buf) == 4:
             self.value = buf[0]
             self.counter_name = buf[1]
@@ -207,7 +207,7 @@ class Nstools(object):
                        ]
         #unique list for these, need special handling
         #because we look for 'totalcount' and not rate p/sec
-        self.totalclist = ['cc_cpu_use']
+        self.totalclist = ['cc_cpu_use','master_cpu_use','mgmt_cpu_use','cpu_use']
         #'mem_cur_allocsize'-implement this once I can figure out 
         #how to graph it properly
 
@@ -230,15 +230,21 @@ class Nstools(object):
         totalc,ratepersec,symname,devno = 2,4,5,6 
         new_list = []
         if len(string.split()) == 11:
-            new_list = string.split()[0:6]
+            templist = string.split()
+            
+            if templist[symname] in self.totalclist:#symbol name in clist
+                new_list.append(templist[totalc])
+            else:
+                new_list.append(templist[ratepersec])
+            
+            new_list.append(templist[symname])
+            new_list.append('Standalone-Count')
             timelist = string.split()[6:11]#timestamp is in 4 chunks
             timestring = ' '.join(timelist[1:])#don't care about name of day
 	    pattern = '%b %d %H:%M:%S %Y'
             new_list.append(int(time.mktime(time.strptime(timestring,pattern))))
-            tru_list = new_list[4:]
-            if 'sys_cur_duration_sincestart' not in tru_list:
-                tru_list.insert(2,'Rate')
-            return tru_list
+            return new_list
+        
         elif len(string.split()) == 12:
             #some special handling for differing counters
             #because some counters are in rate per second
@@ -247,12 +253,10 @@ class Nstools(object):
             templist = string.split()
             if templist[symname] in self.totalclist:#symbol name in clist
                 new_list.append(templist[totalc])
-                new_list.append(templist[symname])
-                new_list.append(templist[devno])
             else:
                 new_list.append(templist[ratepersec])
-                new_list.append(templist[symname])
-                new_list.append(templist[devno])
+            new_list.append(templist[symname])
+            new_list.append(templist[devno])
             timelist = string.split()[7:12]
             timestring = ' '.join(timelist[1:])
 	    pattern = '%b %d %H:%M:%S %Y'
