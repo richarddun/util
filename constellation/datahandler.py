@@ -192,6 +192,10 @@ class Nstools(object):
        'nsconmsg' log file reader"""
     def __init__(self,nslog,nsver):#countlist
         self.nslog = nslog
+        ###
+        #Tailor the below comma seperated list to
+        #customise the counters visible
+        ###
         self.counts = ['cc_cpu_use',
                        'nic_tot_tx_bytes',
                        'nic_tot_rx_bytes',
