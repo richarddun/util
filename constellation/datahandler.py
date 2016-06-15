@@ -118,7 +118,8 @@ class Data_build(object):
     def read_full_rate_data(self,countname,devn,offset=None):
         """Read and return data
            Optimises output to write easy to plot values,
-           from 0 - 100 (minimum/maximum)
+           returns values relative to current length of the
+           y axis (evaluated as percentage of this len)
            Accepts countername, device name, relative y,
            relative x (to calculate 0/100)
         """
@@ -205,7 +206,10 @@ class Nstools(object):
                        'vlan_tot_tx_bytes',
                        'vlan_tot_rx_bytes',
                        'nic_err_rl_rate_pkt_drops',
-                       'mem_tot_freesize'
+                       'nic_err_link_tx_stalls',
+                       'nic_err_link_rx_stalls',
+                       'nic_err_bdg_muted',
+                       'nic_err_ifInDiscards'
                        ]
         #unique list for these, need special handling
         #because we look for 'totalcount' and not rate p/sec
